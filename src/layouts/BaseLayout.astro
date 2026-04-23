@@ -1,0 +1,419 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Imanol Lubiano — Sysadmin & Optimización IT',
+  description = 'Administrador de sistemas especializado en optimización de procesos IT, automatización y arquitectura de infraestructura moderna.',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://imanollubiano.dev');
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- No-flash theme: aplica .light antes del primer paint -->
+  <script is:inline>
+    (function(){if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');})();
+  </script>
+
+  <!-- SEO primario -->
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonicalURL} />
+  <meta name="author" content="Imanol Lubiano" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:locale" content="es_ES" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+
+  <!-- Performance -->
+  <meta name="theme-color" content="#0d1117" />
+  <link rel="icon" type="image/svg+xml" href="/images/nmj-isologo-color.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Person","name":"Imanol Lubiano","jobTitle":"Systems Administrator & IT Process Optimization","url":"https://imanollubiano.dev","sameAs":["https://www.linkedin.com/in/imanol-lubiano-428039279/"]}
+  </script>
+</head>
+
+<body>
+  <!-- Scroll progress bar -->
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">IL<span>://</span>portfolio</a>
+      <ul class="nav-links" role="list">
+        <li><a href="/#sobre">Sobre mí</a></li>
+        <li><a href="/#experiencia">Experiencia</a></li>
+        <li><a href="/#stack">Stack</a></li>
+        <li><a href="/#proyectos">Proyectos</a></li>
+        <li><a href="/#contacto">Contacto</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
+          <!-- Moon (dark mode) -->
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <!-- Sun (light mode) -->
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/>
+          </svg>
+        </button>
+        <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Abrir menú" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile overlay -->
+  <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <nav class="mobile-nav" role="navigation">
+      <a href="/#sobre">Sobre mí</a>
+      <a href="/#experiencia">Experiencia</a>
+      <a href="/#stack">Stack</a>
+      <a href="/#proyectos">Proyectos</a>
+      <a href="/#contacto">Contacto</a>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+    <slot />
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-inner">
+      <span class="footer-copy">© {year} Imanol Lubiano. Hecho con criterio.</span>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/imanol-lubiano-428039279/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a href="/#inicio">Volver arriba ↑</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
+
+<style>
+  /* ── SCROLL PROGRESS ── */
+  .scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 200;
+    transition: width 0.05s linear;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  html.light nav {
+    background: rgba(255,255,255,0.92);
+  }
+
+  .nav-inner {
+    max-width: var(--max-w);
+    margin-inline: auto;
+    padding: 0 2.5rem;
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .nav-logo {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .nav-logo span { color: var(--muted); }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .nav-links a {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+    padding-bottom: 2px;
+  }
+
+  /* Underline animado en hover y activo */
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0;
+    width: 100%; height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s ease;
+  }
+
+  .nav-links a:hover        { color: var(--accent); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+  .nav-links a.nav-active   { color: var(--accent); }
+  .nav-links a.nav-active::after { transform: scaleX(1); }
+
+  /* ── NAV ACTIONS ── */
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  /* ── THEME TOGGLE ── */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+
+  .theme-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(37,99,235,0.08);
+  }
+
+  /* Show/hide moon vs sun depending on mode */
+  .icon-sun  { display: none; }
+  .icon-moon { display: block; }
+
+  html.light .icon-sun  { display: block; }
+  html.light .icon-moon { display: none; }
+
+  /* ── HAMBURGER ── */
+  .nav-menu-btn {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .nav-menu-btn span {
+    display: block;
+    width: 22px;
+    height: 1.5px;
+    background: var(--muted);
+    transition: transform 0.3s, opacity 0.3s, background 0.2s;
+    transform-origin: center;
+  }
+
+  /* Hamburger → X */
+  .nav-menu-btn.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .nav-menu-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .nav-menu-btn.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  /* ── MOBILE OVERLAY ── */
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-menu[aria-hidden="false"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  .mobile-nav a {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--heading);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    transition: color 0.2s;
+  }
+
+  .mobile-nav a:hover { color: var(--accent); }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding-block: 2rem;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-copy {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .footer-links { display: flex; gap: 1.5rem; }
+
+  .footer-links a {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--accent); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .nav-inner { padding-inline: 1.25rem; }
+    .nav-links { display: none; }
+    .nav-menu-btn { display: flex; }
+  }
+</style>
+
+<script>
+  // ── SCROLL PROGRESS ──
+  const progressBar = document.getElementById('scroll-progress')!;
+  window.addEventListener('scroll', () => {
+    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+    progressBar.style.width = Math.min(pct, 100) + '%';
+  }, { passive: true });
+
+  // ── THEME TOGGLE ──
+  const toggle = document.getElementById('theme-toggle')!;
+  const html   = document.documentElement;
+
+  toggle.addEventListener('click', () => {
+    html.classList.toggle('light');
+    localStorage.setItem('theme', html.classList.contains('light') ? 'light' : 'dark');
+  });
+
+  // ── ACTIVE NAV TRACKING ──
+  const sections  = document.querySelectorAll<HTMLElement>('section[id]');
+  const navLinks  = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
+
+  const navObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          navLinks.forEach((a) => {
+            a.classList.toggle('nav-active', a.getAttribute('href') === `/#${entry.target.id}`);
+          });
+        }
+      });
+    },
+    { rootMargin: '-40% 0px -55% 0px' }
+  );
+  sections.forEach((s) => navObserver.observe(s));
+
+  // ── MOBILE MENU ──
+  const menuBtn    = document.getElementById('nav-menu-btn')!;
+  const mobileMenu = document.getElementById('mobile-menu')!;
+
+  function toggleMenu(open: boolean) {
+    mobileMenu.setAttribute('aria-hidden', String(!open));
+    menuBtn.setAttribute('aria-expanded', String(open));
+    menuBtn.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+
+  menuBtn.addEventListener('click', () => {
+    toggleMenu(mobileMenu.getAttribute('aria-hidden') === 'true');
+  });
+
+  document.querySelectorAll('.mobile-nav a').forEach((a) => {
+    a.addEventListener('click', () => toggleMenu(false));
+  });
+
+  // ── SCROLL REVEAL ──
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          io.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+  reveals.forEach((el) => io.observe(el));
+</script>

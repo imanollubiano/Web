@@ -1,0 +1,1282 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { stack, projects, experience, marquee } from '../data/content';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Brand colors for SimpleIcons SVGs (uses currentColor → replaced at build time)
+const brandColors: Record<string, string> = {
+  microsoft:      '#00A4EF',
+  proxmox:        '#E57000',
+  vmware:         '#607078',
+  hyperv:         '#0078D4',
+  linux:          '#FCC624',
+  cisco:          '#1BA0D7',
+  aruba:          '#EF3A43',
+  ubiquiti:       '#0559C9',
+  azure:          '#0078D4',
+  microsoftazure: '#0078D4',
+  intune:         '#0078D4',
+  minio:          '#C72E49',
+  wazuh:          '#00A9E5',
+  suricata:       '#F1762A',
+  greenbone:      '#9AC420',
+  fortinet:       '#EE3124',
+  bitdefender:    '#ED1C24',
+  caldera:        '#4B4EFC',
+  passbolt:       '#CF2A2A',
+  grafana:        '#F46800',
+  zabbix:         '#CC0000',
+  elasticsearch:  '#FEC514',
+  logstash:       '#00BFB3',
+  kibana:         '#005571',
+  docker:         '#2496ED',
+  caddy:          '#1F88C0',
+  redis:          '#FF4438',
+  postgresql:     '#4169E1',
+  nestjs:         '#E0234E',
+  nextdotjs:      '#000000',
+  snipeit:        '#3D8EBF',
+  rustdesk:       '#1EB4F9',
+  pterodactyl:    '#0E4688',
+  haveibeenpwned: '#2A6496',
+  veeam:          '#00B336',
+  wasabi:         '#3DC742',
+  synology:       '#B5B5B6',
+  dell:           '#007DB8',
+  hp:             '#0096D6',
+  hpe:            '#01A982',
+  lenovo:         '#E2231A',
+  asus:           '#000000',
+  logitech:       '#00B8FC',
+  adobe:          '#FF0000',
+};
+
+function getLogoSvg(logoPath: string | null): string | null {
+  if (!logoPath) return null;
+  try {
+    const absPath = path.join(process.cwd(), 'public', logoPath);
+    let svg = fs.readFileSync(absPath, 'utf-8');
+    if (svg.includes('currentColor')) {
+      const slug = path.basename(logoPath, '.svg');
+      const color = brandColors[slug] ?? '#334155';
+      svg = svg.replaceAll('currentColor', color);
+    }
+    return svg;
+  } catch {
+    return null;
+  }
+}
+
+// Lucide icons for category tabs
+const stackIcons: Record<string, string> = {
+  infra:   'M22 12H2M5 12V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v5M2 17h20M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2',
+  redes:   'M5 12H3a9 9 0 1 0 18 0h-2M12 3v3m0 12v3M4.22 4.22l2.12 2.12m11.32 11.32 2.12 2.12M3 12h1m16 0h1M4.22 19.78l2.12-2.12M18.66 5.34l-2.12 2.12',
+  cloud:   'M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z',
+  sec:     'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zm-3-8 2 2 4-4',
+  devops:  'M16.5 9.4 7.55 4.24M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12',
+  backend: 'M7 8l-4 4 4 4M17 8l4 4-4 4M14 4l-4 16',
+  gestion: 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z',
+};
+
+// Brand logo map for each technology card
+const techLogos: Record<string, string | null> = {
+  'Windows Server': '/images/logos/microsoft.svg',
+  'Proxmox VE':          '/images/logos/proxmox.svg',
+  'VMware ESXi':         '/images/logos/vmware.svg',
+  'Hyper-V':             '/images/logos/hyperv.svg',
+  'Linux':               '/images/logos/linux.svg',
+  'Active Directory':    '/images/logos/microsoft.svg',
+  'Cisco':               '/images/logos/cisco.svg',
+  'Aruba':               '/images/logos/aruba.svg',
+  'Ubiquiti UniFi':      '/images/logos/ubiquiti.svg',
+  'VLANs':               null,
+  'RADIUS / NPS':        null,
+  '802.1X / PEAP':       null,
+  'Entra ID':            '/images/logos/azure.svg',
+  'Microsoft Intune':    '/images/logos/intune.svg',
+  'Purview DLP':         '/images/logos/microsoft.svg',
+  'Azure':               '/images/logos/microsoftazure.svg',
+  'Microsoft 365':       '/images/logos/microsoft.svg',
+  'Veeam':               '/images/logos/veeam.svg',
+  'Synology':            '/images/logos/synology.svg',
+  'Wasabi':              '/images/logos/wasabi.svg',
+  'MinIO':               '/images/logos/minio.svg',
+  'Wazuh':               '/images/logos/wazuh.svg',
+  'Suricata':            '/images/logos/suricata.svg',
+  'Greenbone / OpenVAS': '/images/logos/greenbone.svg',
+  'Fortinet':            '/images/logos/fortinet.svg',
+  'Bitdefender':         '/images/logos/bitdefender.svg',
+  'PKI / CA interna':    null,
+  'Caldera (MITRE ATT&CK)': '/images/logos/caldera.svg',
+  'Passbolt':            '/images/logos/passbolt.svg',
+  'Grafana':             '/images/logos/grafana.svg',
+  'Zabbix':              '/images/logos/zabbix.svg',
+  'Elasticsearch':       '/images/logos/elasticsearch.svg',
+  'Logstash':            '/images/logos/logstash.svg',
+  'Kibana':              '/images/logos/kibana.svg',
+  'Docker':              '/images/logos/docker.svg',
+  'Docker Compose':      '/images/logos/docker.svg',
+  'Caddy':               '/images/logos/caddy.svg',
+  'Redis':               '/images/logos/redis.svg',
+  'PostgreSQL':          '/images/logos/postgresql.svg',
+  'NestJS':              '/images/logos/nestjs.svg',
+  'Next.js':             '/images/logos/nextdotjs.svg',
+  'Snipe-IT':            '/images/logos/snipeit.svg',
+  'RustDesk':            '/images/logos/rustdesk.svg',
+  'Pterodactyl':         '/images/logos/pterodactyl.svg',
+  'Have I Been Pwned':   '/images/logos/haveibeenpwned.svg',
+};
+---
+
+<BaseLayout>
+
+  <!-- ══ HERO ══════════════════════════════════════════════ -->
+  <section id="inicio" class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="container hero-inner">
+
+      <div class="hero-text">
+        <div class="hero-badge" aria-label="Estado: disponible para oportunidades">
+          <span class="hero-badge-dot" aria-hidden="true"></span>
+          Disponible para nuevas oportunidades
+        </div>
+
+        <h1>Imanol<br /><span class="accent">Lubiano</span></h1>
+
+        <p class="hero-subtitle">Sysadmin · Optimización de procesos IT</p>
+
+        <p class="hero-desc">
+          Administro infraestructuras, pero lo que realmente me interesa es
+          <strong>mejorar cómo funcionan los equipos por dentro</strong>: automatizar
+          lo repetitivo, reducir la fricción técnica y hacer que la tecnología
+          trabaje para las personas, no al revés.
+        </p>
+
+        <div class="hero-ctas">
+          <a href="#proyectos" class="btn-primary">Ver proyectos →</a>
+          <a href="#contacto" class="btn-outline">Hablamos</a>
+        </div>
+      </div>
+
+      <!-- Para añadir tu foto: coloca el archivo en public/images/avatar.jpg -->
+      <div class="hero-avatar-wrap">
+        <img
+          src="/images/avatar.jpg"
+          alt="Imanol Lubiano"
+          class="hero-avatar"
+          onerror="this.closest('.hero-avatar-wrap').style.display='none'"
+        />
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ MARQUEE ══════════════════════════════════════════════ -->
+  <div class="marquee-section" aria-label="Tecnologías y herramientas">
+    <div class="marquee-fade-left"  aria-hidden="true"></div>
+    <div class="marquee-fade-right" aria-hidden="true"></div>
+    <div class="marquee-viewport">
+      <div class="marquee-track">
+        {[...marquee, ...marquee].map((item) => (
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="marquee-item"
+            title={item.name}
+          >
+            <img src={item.logo} alt={item.name} class="marquee-logo" />
+            <span class="marquee-name">{item.name}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ══ SOBRE MÍ ═══════════════════════════════════════════ -->
+  <section id="sobre" class="section">
+    <div class="container sobre-grid">
+
+      <div class="sobre-text">
+        <p class="section-label">01 · Sobre mí</p>
+        <h2>Infraestructura<br />con criterio</h2>
+        <div class="sobre-body reveal">
+          <p>
+            Llevo años gestionando entornos Windows y Linux, redes empresariales
+            y arquitecturas de virtualización. Con el tiempo comprendí que el
+            mayor impacto no está en mantener servidores en pie —
+            <strong>está en eliminar los procesos manuales que frenan a los equipos</strong>.
+          </p>
+          <p>
+            Trabajo con Active Directory, Intune, Proxmox y Docker para construir
+            entornos que funcionan solos. Me interesan la automatización, la
+            seguridad práctica y la integración de sistemas.
+          </p>
+          <p>
+            También tengo proyectos propios donde exploro backend, bots e
+            infraestructura moderna sin restricciones corporativas.
+          </p>
+        </div>
+      </div>
+
+      <div class="sobre-stats reveal">
+        <div class="stat-card">
+          <span class="stat-num" data-count="5" data-suffix="+">5+</span>
+          <span class="stat-label">Años en administración de sistemas</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" data-count="20" data-suffix="+">20+</span>
+          <span class="stat-label">Tecnologías en stack activo</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" data-special="infinity">∞</span>
+          <span class="stat-label">Procesos manuales eliminados</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" data-countdown="12">0</span>
+          <span class="stat-label">Tickets repetidos que sobreviven</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══ EXPERIENCIA ═══════════════════════════════════════ -->
+  <section id="experiencia" class="section">
+    <div class="container">
+      <p class="section-label reveal">02 · Experiencia</p>
+      <h2 class="reveal">Dónde he<br />trabajado</h2>
+
+      <div class="exp-timeline">
+        {experience.map((e) => (
+          <div class="timeline-item reveal">
+            <div class={`timeline-dot${e.current ? ' timeline-dot-active' : ''}`}></div>
+            <article class="exp-card">
+              <div class="exp-header">
+                <div class="exp-main">
+                  <div class="exp-role-row">
+                    <h3 class="exp-role">{e.role}</h3>
+                    {e.current && <span class="exp-current">Actual</span>}
+                  </div>
+                  <p class="exp-company">{e.company}</p>
+                </div>
+                <div class="exp-meta">
+                  <span class="exp-period">{e.period}</span>
+                  <span class="exp-location">{e.location}</span>
+                  <span class="exp-type">{e.type}</span>
+                </div>
+              </div>
+              {e.description && <p class="exp-desc">{e.description}</p>}
+              {e.tags.length > 0 && (
+                <div class="exp-tags">
+                  {e.tags.map((t) => <span class="project-tag">{t}</span>)}
+                </div>
+              )}
+            </article>
+          </div>
+        ))}
+      </div>
+
+      <a
+        href="https://www.linkedin.com/in/imanol-lubiano-428039279/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="exp-linkedin-link reveal"
+      >
+        Ver perfil completo en LinkedIn ↗
+      </a>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══ STACK ══════════════════════════════════════════════ -->
+  <section id="stack" class="section">
+    <div class="container">
+      <p class="section-label reveal">03 · Stack técnico</p>
+      <h2 class="reveal">Herramientas<br />que uso</h2>
+      <p class="section-intro reveal">
+        Lo que hay en producción o en proyectos reales, organizado por dominio.
+      </p>
+
+      <!-- Tab bar -->
+      <div class="stack-tabs reveal" role="tablist">
+        {stack.map((cat, i) => (
+          <button
+            class={`stack-tab${i === 0 ? ' active' : ''}`}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls={`stack-panel-${cat.id}`}
+            data-tab={cat.id}
+            type="button"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d={stackIcons[cat.id]} />
+            </svg>
+            <span>{cat.category}</span>
+          </button>
+        ))}
+      </div>
+
+      <!-- Panels -->
+      <div class="stack-panels">
+        {stack.map((cat, i) => (
+          <div
+            id={`stack-panel-${cat.id}`}
+            class={`stack-panel${i === 0 ? ' active' : ''}`}
+            role="tabpanel"
+          >
+            <div class="stack-cards">
+              {cat.items.map((item) => {
+                const svgContent = getLogoSvg(techLogos[item.title]);
+                return (
+                  <div class="stack-card">
+                    <div class="stack-card-logo" aria-hidden="true">
+                      {svgContent ? (
+                        <span class="stack-card-svg" set:html={svgContent} />
+                      ) : (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d={stackIcons[cat.id]} />
+                        </svg>
+                      )}
+                    </div>
+                    <h3 class="stack-card-title">{item.title}</h3>
+                    <p class="stack-card-desc">{item.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══ PROYECTOS ══════════════════════════════════════════ -->
+  <section id="proyectos" class="section">
+    <div class="container">
+      <p class="section-label reveal">04 · Proyectos</p>
+      <h2 class="reveal">Lo que construyo<br />fuera del horario</h2>
+      <p class="section-intro reveal">
+        Proyectos reales, con problemas reales. Sin tutorial detrás.
+      </p>
+
+      <div class="projects-grid">
+        {projects.map((p) => (
+          <article class="project-card reveal">
+            {p.wip && <span class="project-wip">En desarrollo</span>}
+            {p.logo && (
+              <div class="project-logo-wrap">
+                <img src={p.logo} alt={`Logo ${p.title}`} class="project-logo project-logo-default" />
+                {p.logoHover && (
+                  <img src={p.logoHover} alt="" aria-hidden="true" class="project-logo project-logo-hover" />
+                )}
+              </div>
+            )}
+            <p class="project-type">{p.type}</p>
+            <h3 class="project-title">{p.title}</h3>
+            <p class="project-desc">{p.description}</p>
+            <div class="project-tags">
+              {p.tags.map((t) => (
+                <span class="project-tag">{t}</span>
+              ))}
+            </div>
+            {p.href && (
+              <a href={p.href} class="project-link">Ver más →</a>
+            )}
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══ CONTACTO ═══════════════════════════════════════════ -->
+  <section id="contacto" class="section">
+    <div class="container contact-inner">
+      <div class="contact-glow" aria-hidden="true"></div>
+
+      <p class="section-label reveal" style="justify-content:center">05 · Contacto</p>
+      <h2 class="reveal" style="text-align:center">¿Hablamos?</h2>
+      <p class="section-intro reveal" style="margin-inline:auto;text-align:center">
+        Si tienes un proyecto interesante, una oportunidad o simplemente quieres
+        hablar de infraestructura — escríbeme.
+      </p>
+
+      <form class="contact-form reveal" name="contact" method="POST" data-netlify="true" novalidate>
+        <input type="hidden" name="form-name" value="contact" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Nombre</label>
+            <input id="name" name="name" type="text" placeholder="Tu nombre" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="tu@email.com" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="subject">Asunto</label>
+          <input id="subject" name="subject" type="text" placeholder="¿De qué quieres hablar?" required />
+        </div>
+        <div class="form-group">
+          <label for="message">Mensaje</label>
+          <textarea id="message" name="message" rows="5" placeholder="Cuéntame..." required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;justify-content:center">
+          Enviar mensaje →
+        </button>
+      </form>
+
+      <div class="contact-links reveal">
+        <a
+          href="https://www.linkedin.com/in/imanol-lubiano-428039279/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-outline"
+        >LinkedIn ↗</a>
+        <a href="mailto:imanol@imanollubiano.dev" class="btn-outline">Email directo ↗</a>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-top: var(--nav-h);
+    z-index: 1;
+  }
+
+  .hero-inner {
+    padding-block: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4rem;
+  }
+
+  .hero-text { flex: 1; min-width: 0; }
+
+  .hero-avatar-wrap {
+    flex-shrink: 0;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--border);
+    box-shadow: 0 0 0 6px var(--bg3), 0 8px 32px rgba(37,99,235,0.1);
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+
+  .hero-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 10%; right: -10%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+    border: 1px solid rgba(37,99,235,0.25);
+    background: rgba(37,99,235,0.05);
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-badge-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  h1 {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .accent { color: var(--accent); }
+
+  .hero-subtitle {
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 1.8rem;
+    letter-spacing: -0.01em;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--text);
+    max-width: 560px;
+    line-height: 1.8;
+    margin-bottom: 2.5rem;
+    opacity: 0.85;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .hero-desc strong { color: var(--accent); font-weight: 500; }
+
+  .hero-ctas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes stat-bounce {
+    0%   { transform: scale(0.4); opacity: 0; }
+    55%  { transform: scale(1.25); opacity: 1; }
+    75%  { transform: scale(0.92); }
+    90%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── MARQUEE ── */
+  .marquee-section {
+    position: relative;
+    padding-block: 1.75rem;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .marquee-viewport {
+    overflow: hidden;
+  }
+
+  .marquee-track {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: max-content;
+    animation: marquee-scroll 55s linear infinite;
+  }
+
+  .marquee-section:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .marquee-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1.75rem;
+    text-decoration: none;
+    color: var(--muted);
+    border-right: 1px solid var(--border);
+    transition: color 0.2s, background 0.2s;
+    white-space: nowrap;
+  }
+
+  .marquee-item:hover {
+    color: var(--heading);
+    background: var(--bg2);
+  }
+
+  .marquee-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: grayscale(1) opacity(0.55);
+    transition: filter 0.25s;
+  }
+
+  .marquee-item:hover .marquee-logo {
+    filter: grayscale(0) opacity(1);
+  }
+
+  .marquee-name {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+  }
+
+  .marquee-fade-left,
+  .marquee-fade-right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .marquee-fade-left {
+    left: 0;
+    background: linear-gradient(to right, var(--bg), transparent);
+  }
+
+  .marquee-fade-right {
+    right: 0;
+    background: linear-gradient(to left, var(--bg), transparent);
+  }
+
+  /* ── SOBRE ── */
+  .sobre-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .sobre-text h2 { margin-bottom: 1.5rem; }
+
+  .sobre-body p {
+    color: var(--text);
+    opacity: 0.85;
+    margin-bottom: 1.2rem;
+    font-size: 1rem;
+  }
+
+  .sobre-body p strong { color: var(--accent); font-weight: 500; }
+
+  .sobre-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    padding: 1.2rem 1.5rem;
+    border-radius: var(--radius);
+    transition: border-color 0.2s, background 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .stat-card:hover {
+    background: var(--bg3);
+    border-left-color: var(--accent2);
+  }
+
+  .stat-num {
+    font-family: var(--font-mono);
+    font-size: 1.8rem;
+    color: var(--heading);
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── STACK ── */
+  .stack-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 2rem;
+    gap: 0;
+  }
+
+  .stack-tabs::-webkit-scrollbar { display: none; }
+
+  .stack-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.85rem 0.6rem;
+    background: none;
+    border: none;
+    box-shadow: inset 0 -2px 0 transparent;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    flex: 1;
+    transition: color 0.2s, box-shadow 0.2s, background 0.15s;
+  }
+
+  .stack-tab:hover { color: var(--heading); background: var(--bg2); }
+
+  .stack-tab.active {
+    color: var(--accent);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+
+  .stack-panels { position: relative; }
+
+  .stack-panel {
+    display: none;
+    animation: stack-fade 0.22s ease;
+  }
+
+  .stack-panel.active { display: block; }
+
+  @keyframes stack-fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .stack-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .stack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+
+  .stack-card:hover {
+    border-color: rgba(37,99,235,0.3);
+    box-shadow: 0 4px 16px rgba(37,99,235,0.06);
+    transform: translateY(-2px);
+  }
+
+  .stack-card-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    padding: 6px;
+    color: var(--muted);
+  }
+
+  .stack-card-svg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+  }
+
+  .stack-card-svg svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .stack-card-title {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--heading);
+    margin-bottom: 0.4rem;
+    line-height: 1.25;
+  }
+
+  .stack-card-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── PROYECTOS ── */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    transition: border-color 0.25s, background 0.25s, transform 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .project-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .project-card:hover {
+    border-color: rgba(37,99,235,0.4);
+    background: var(--bg3);
+    transform: translateY(-3px);
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.2), 0 8px 32px rgba(37,99,235,0.18), 0 20px 60px rgba(37,99,235,0.08);
+  }
+
+  .project-card:hover::before { transform: scaleX(1); }
+
+  .project-logo-wrap {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1.25rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    position: relative;
+    transition: border-color 0.25s, background 0.25s;
+  }
+
+  .project-card:hover .project-logo-wrap {
+    border-color: var(--accent);
+    background: rgba(37,99,235,0.04);
+  }
+
+  /* Ambas imágenes ocupan exactamente el mismo espacio */
+  .project-logo {
+    position: absolute;
+    inset: 8px;
+    width: calc(100% - 16px);
+    height: calc(100% - 16px);
+    object-fit: contain;
+    transition: opacity 0.25s, filter 0.25s;
+  }
+
+  .project-logo-default { opacity: 1; }
+  .project-logo-hover   { opacity: 0; }
+
+  /* Solo aplica el swap cuando la card TIENE imagen de hover (NMJ) */
+  .project-card:hover .project-logo-wrap:has(.project-logo-hover) .project-logo-default { opacity: 0; }
+  .project-card:hover .project-logo-wrap:has(.project-logo-hover) .project-logo-hover   { opacity: 1; }
+
+  /* Minecraft: no tiene hover image, solo satura en hover */
+  .project-card:hover .project-logo-wrap:not(:has(.project-logo-hover)) .project-logo {
+    filter: brightness(1.1) saturate(1.25);
+  }
+
+  .project-wip {
+    position: absolute;
+    top: 1.2rem; right: 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--accent2);
+    background: rgba(184,146,10,0.08);
+    border: 1px solid rgba(184,146,10,0.25);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius);
+    letter-spacing: 0.08em;
+  }
+
+  .project-type {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .project-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--heading);
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+  }
+
+  .project-desc {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.65;
+    margin-bottom: 1.2rem;
+  }
+
+  .project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .project-link {
+    display: inline-block;
+    margin-top: 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid rgba(37,99,235,0.25);
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius);
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .project-link:hover {
+    background: rgba(37,99,235,0.06);
+    border-color: var(--accent);
+  }
+
+  /* ── EXPERIENCIA ── */
+  .exp-timeline {
+    position: relative;
+    margin-top: 2.5rem;
+  }
+
+  .exp-timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2rem;
+    bottom: 2rem;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .timeline-item:last-child { padding-bottom: 0; }
+
+  .timeline-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 1.7rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-dot-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    animation: dot-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes dot-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(37,99,235,0.25); }
+    50%       { box-shadow: 0 0 0 8px rgba(37,99,235,0.05); }
+  }
+
+  .exp-card {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .exp-card:hover {
+    background: var(--bg2);
+    border-color: rgba(37,99,235,0.2);
+  }
+
+  .exp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .exp-role-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .exp-role {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--heading);
+    letter-spacing: -0.01em;
+  }
+
+  .exp-current {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(37,99,235,0.07);
+    border: 1px solid rgba(37,99,235,0.2);
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius);
+  }
+
+  .exp-company {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+
+  .exp-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .exp-period,
+  .exp-location,
+  .exp-type {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-align: right;
+  }
+
+  .exp-type {
+    color: var(--accent2);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .exp-desc {
+    font-size: 0.9rem;
+    color: var(--text);
+    opacity: 0.85;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .exp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .exp-linkedin-link {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 1.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    transition: opacity 0.2s;
+  }
+
+  .exp-linkedin-link:hover { opacity: 0.7; }
+
+  /* ── CONTACTO ── */
+  .contact-inner {
+    text-align: center;
+    position: relative;
+  }
+
+  .contact-glow {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 400px; height: 300px;
+    background: radial-gradient(circle, rgba(184,146,10,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .contact-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    margin-top: 2.5rem;
+    text-align: left;
+    max-width: 700px;
+    margin-inline: auto;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+    width: 100%;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus { border-color: var(--accent); }
+
+  .form-group input::placeholder,
+  .form-group textarea::placeholder { color: var(--border); }
+
+  .contact-links {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .hero-inner       { flex-direction: column-reverse; gap: 2rem; padding-block: 3.5rem; }
+    .hero-avatar-wrap { width: 140px; height: 140px; }
+    .exp-header       { flex-direction: column; gap: 0.5rem; }
+    .exp-meta         { align-items: flex-start; }
+    .stack-cards      { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .sobre-grid       { grid-template-columns: 1fr; gap: 2.5rem; }
+    .projects-grid    { grid-template-columns: 1fr; }
+    .form-row         { grid-template-columns: 1fr; }
+    .stack-cards      { grid-template-columns: 1fr; }
+    .stack-tab        { padding: 0.75rem 0.4rem; font-size: 0.58rem; }
+  }
+</style>
+
+<script>
+  // ── ANIMATED COUNTERS ──
+  const statNums = document.querySelectorAll<HTMLElement>('[data-count], [data-countdown], [data-special]');
+
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      counterObserver.unobserve(entry.target);
+
+      const el = entry.target as HTMLElement;
+
+      if (el.dataset.special === 'infinity') {
+        el.style.display = 'inline-block';
+        el.style.animation = 'stat-bounce 0.55s cubic-bezier(0.34,1.56,0.64,1) both';
+        return;
+      }
+
+      const isCountdown = 'countdown' in el.dataset;
+      const target  = parseInt(isCountdown ? el.dataset.countdown! : el.dataset.count!);
+      const suffix  = el.dataset.suffix ?? '';
+      const duration = 1200;
+      const start = performance.now();
+
+      const tick = (now: number) => {
+        const t      = Math.min((now - start) / duration, 1);
+        const eased  = 1 - Math.pow(1 - t, 3);
+        const value  = Math.round(isCountdown ? target * (1 - eased) : target * eased);
+        el.textContent = value + suffix;
+        if (t < 1) requestAnimationFrame(tick);
+        else el.textContent = isCountdown ? '0' : target + suffix;
+      };
+
+      requestAnimationFrame(tick);
+    });
+  }, { threshold: 0.6 });
+
+  statNums.forEach((el) => counterObserver.observe(el));
+
+  // Tab switching
+  document.querySelectorAll<HTMLButtonElement>('.stack-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.tab!;
+      document.querySelectorAll('.stack-tab').forEach((t) => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.stack-panel').forEach((p) => p.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      document.getElementById(`stack-panel-${id}`)?.classList.add('active');
+    });
+  });
+</script>

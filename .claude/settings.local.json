@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.linkedin.com)",
+      "Bash(node -e ' *)",
+      "Bash(curl -sL -w \"%{http_code} %{url_effective}\\\\n\" -o microsoft.svg \"https://cdn.simpleicons.org/microsoft/00A4EF\")",
+      "Bash(curl -sL -w \"%{http_code} %{url_effective}\\\\n\" -o minecraft.svg \"https://cdn.simpleicons.org/minecraft/62B47A\")",
+      "Bash(curl -sL -w \"%{http_code}\\\\n\" -o logitech.svg \"https://cdn.simpleicons.org/logitech/00B8FC\")",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:cdn.jsdelivr.net)",
+      "WebFetch(domain:simpleicons.org)",
+      "WebFetch(domain:az-icons.com)",
+      "WebFetch(domain:icons8.com)",
+      "WebFetch(domain:commons.wikimedia.org)",
+      "WebFetch(domain:upload.wikimedia.org)"
+    ]
+  }
+}

@@ -1,0 +1,837 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Clúster proxy multi-nodo con autenticación híbrida — Imanol Lubiano"
+  description="Arquitectura de clúster multi-nodo sobre Waterfall/BungeeCord con pipeline de autenticación híbrida premium/offline, 2FA TOTP y sesiones distribuidas en Redis."
+>
+
+  <section class="project-detail">
+    <div class="container">
+
+      <!-- BREADCRUMB -->
+      <nav class="breadcrumb" aria-label="Navegación de vuelta">
+        <a href="/#proyectos" class="back-link">← Proyectos</a>
+      </nav>
+
+      <!-- HEADER -->
+      <header class="detail-header">
+        <p class="project-type">Infraestructura · Sistemas Distribuidos</p>
+        <h1>Clúster proxy multi-nodo<br />con autenticación híbrida</h1>
+        <div class="header-tags">
+          {['Waterfall', 'BungeeCord', 'Redis', 'PostgreSQL', 'LuckPerms', 'TOTP', 'Mojang API', 'Java', 'Pterodactyl', 'Proxmox'].map((t) => (
+            <span class="tag">{t}</span>
+          ))}
+        </div>
+      </header>
+
+      <div class="divider"></div>
+
+      <!-- OVERVIEW -->
+      <section class="detail-section">
+        <div class="section-label-col">
+          <p class="section-label">01 · Visión general</p>
+        </div>
+        <div class="section-body">
+          <p>
+            El objetivo era montar una infraestructura de red de juego con comportamiento de <strong>proxy de capa de aplicación</strong>:
+            un nodo de entrada por región que enruta tráfico hacia múltiples backends segregados por función,
+            con control centralizado de sesiones, autenticación propia y capa de datos compartida entre regiones.
+          </p>
+          <p>
+            La red operó en <strong>dos regiones simultáneas</strong> — Europa y Latinoamérica —
+            cada una con su propio proxy Waterfall y conjunto de nodos backend independientes,
+            pero compartiendo la misma base de datos PostgreSQL y el mismo estado de permisos LuckPerms.
+            Un jugador podía cambiar de región manteniendo su rango, inventario y sesión intactos.
+          </p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- TOPOLOGY -->
+      <section class="detail-section">
+        <div class="section-label-col">
+          <p class="section-label">02 · Topología de nodos</p>
+        </div>
+        <div class="section-body">
+          <p>
+            Cada región corre en su propio hardware gestionado desde <strong>Pterodactyl</strong> sobre <strong>Proxmox</strong>,
+            con contenedores Docker aislados por nodo. La capa de datos (PostgreSQL y Redis)
+            es compartida entre regiones, actuando como fuente de verdad única para cuentas, permisos y tienda.
+          </p>
+
+          <div class="topology-diagram">
+
+            <div class="topo-regions">
+
+              <div class="topo-region">
+                <p class="topo-region-label">REGIÓN EU · Europa</p>
+                <div class="topo-node topo-entry">
+                  <span class="topo-label">PROXY</span>
+                  <span class="topo-name">Waterfall EU</span>
+                  <span class="topo-detail">:25565 · auth · routing</span>
+                </div>
+                <div class="topo-arrow">↓</div>
+                <div class="topo-region-nodes">
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">A</span>
+                    <span class="topo-name">Lobby</span>
+                  </div>
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">B</span>
+                    <span class="topo-name">Skywars</span>
+                  </div>
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">C</span>
+                    <span class="topo-name">Minekoro</span>
+                  </div>
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">D</span>
+                    <span class="topo-name">FFA</span>
+                  </div>
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">E</span>
+                    <span class="topo-name">Eventos</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="topo-region-sep">
+                <span>↕ datos compartidos</span>
+              </div>
+
+              <div class="topo-region">
+                <p class="topo-region-label">REGIÓN LATAM · Latinoamérica</p>
+                <div class="topo-node topo-entry">
+                  <span class="topo-label">PROXY</span>
+                  <span class="topo-name">Waterfall LATAM</span>
+                  <span class="topo-detail">:25565 · auth · routing</span>
+                </div>
+                <div class="topo-arrow">↓</div>
+                <div class="topo-region-nodes">
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">A</span>
+                    <span class="topo-name">Lobby</span>
+                  </div>
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">B</span>
+                    <span class="topo-name">Skywars</span>
+                  </div>
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">C</span>
+                    <span class="topo-name">Minekoro</span>
+                  </div>
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">D</span>
+                    <span class="topo-name">FFA</span>
+                  </div>
+                  <div class="topo-node topo-backend topo-sm">
+                    <span class="topo-label">E</span>
+                    <span class="topo-name">Eventos</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="topo-arrow">↕ estado compartido entre regiones</div>
+            <div class="topo-row topo-infra-row">
+              <div class="topo-node topo-infra">
+                <span class="topo-label">CACHÉ</span>
+                <span class="topo-name">Redis</span>
+                <span class="topo-detail">sesiones autenticadas · cache cross-node</span>
+              </div>
+              <div class="topo-node topo-infra">
+                <span class="topo-label">PERSISTENCIA</span>
+                <span class="topo-name">PostgreSQL</span>
+                <span class="topo-detail">cuentas · permisos LuckPerms · tienda</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- AUTH PIPELINE -->
+      <section class="detail-section">
+        <div class="section-label-col">
+          <p class="section-label">03 · Pipeline de autenticación</p>
+        </div>
+        <div class="section-body">
+          <p>
+            El servidor corre en modo <strong>offline</strong> a nivel de Waterfall para poder interceptar
+            la autenticación antes de delegarla. El plugin propio en Java implementa tres ramas:
+          </p>
+
+          <div class="auth-flows">
+            <div class="auth-flow">
+              <div class="auth-flow-header">
+                <span class="auth-badge auth-premium">Premium</span>
+                <span class="auth-flow-title">Mojang Session API</span>
+              </div>
+              <ol class="auth-steps">
+                <li>Cliente inicia sesión contra los servidores de Mojang (online mode local)</li>
+                <li>El plugin consulta <code>sessionserver.mojang.com/session/minecraft/hasJoined</code></li>
+                <li>Respuesta positiva → UUID canónico extraído del perfil JSON</li>
+                <li>Sesión creada en Redis con TTL de 30 min y UUID como clave primaria</li>
+                <li>Cliente redirigido al hub sin pantalla de login</li>
+              </ol>
+            </div>
+
+            <div class="auth-flow">
+              <div class="auth-flow-header">
+                <span class="auth-badge auth-offline">Offline</span>
+                <span class="auth-flow-title">Credenciales propias</span>
+              </div>
+              <ol class="auth-steps">
+                <li>Cliente detectado como offline (UUID v3 basado en nombre)</li>
+                <li>Plugin bloquea al hub y fuerza pantalla de login</li>
+                <li>Credenciales introducidas en chat cifrado (canal privado de plugin)</li>
+                <li>Contraseña verificada contra hash BCrypt almacenado en base de datos</li>
+                <li>Sesión creada en Redis; cliente desbloqueado hacia el hub</li>
+              </ol>
+            </div>
+
+            <div class="auth-flow">
+              <div class="auth-flow-header">
+                <span class="auth-badge auth-2fa">2FA</span>
+                <span class="auth-flow-title">TOTP — RFC 6238</span>
+              </div>
+              <ol class="auth-steps">
+                <li>Segundo factor activable por usuario desde panel de comandos</li>
+                <li>Generación de secreto TOTP (Base32) vinculado a la cuenta</li>
+                <li>Compatible con cualquier autenticador estándar (Google Authenticator, Aegis…)</li>
+                <li>Código de 6 dígitos requerido tras la contraseña en cada sesión</li>
+                <li>Ventana de validación de ±30 s con tolerancia de drift de un intervalo</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- REDIS SESSIONS -->
+      <section class="detail-section">
+        <div class="section-label-col">
+          <p class="section-label">04 · Gestión de sesiones</p>
+        </div>
+        <div class="section-body">
+          <p>
+            Redis actúa como capa de estado compartido entre el proxy y todos los nodos backend.
+            Cada sesión autenticada escribe una clave con el UUID del jugador y metadatos:
+            estado de auth, tipo de cuenta, timestamp, nodo actual.
+          </p>
+          <div class="code-block">
+            <p class="code-label">Estructura de clave en Redis</p>
+            <pre><code>session:&lt;uuid&gt; → Hash
+  ├── authenticated  : "true"
+  ├── account_type   : "premium" | "offline"
+  ├── 2fa_verified   : "true" | "false"
+  ├── current_node   : "lobby" | "skywars" | "minekoro" | "ffa" | "eventos"
+  ├── login_ts       : &lt;unix timestamp&gt;
+  └── ip             : &lt;ip de origen&gt;
+
+TTL: 1800s (renovado on activity)
+Revocación: DEL session:&lt;uuid&gt; en disconnect</code></pre>
+          </div>
+          <p>
+            Al cambiar de nodo, el backend destino consulta Redis antes de cargar al jugador,
+            evitando que un cliente no autenticado pueda acceder directamente al puerto del nodo
+            aunque lo conozca por otros medios.
+          </p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- LUCKPERMS -->
+      <section class="detail-section">
+        <div class="section-label-col">
+          <p class="section-label">05 · Permisos distribuidos</p>
+        </div>
+        <div class="section-body">
+          <p>
+            El sistema de permisos se gestiona con <strong>LuckPerms</strong> configurado en modo de
+            almacenamiento <strong>PostgreSQL</strong>, lo que permite que todos los nodos compartan
+            el mismo estado de permisos en tiempo real sin necesidad de sincronización manual.
+          </p>
+          <p>
+            Cada nodo arranca con LuckPerms apuntando a la misma base de datos central.
+            Un cambio de rango aplicado desde cualquier nodo, o desde la consola del proxy,
+            se refleja de forma inmediata en el resto del clúster.
+          </p>
+          <div class="code-block">
+            <p class="code-label">Jerarquía de grupos (extracto)</p>
+            <pre><code>default          → permisos base (todos los jugadores)
+  vip            → acceso a comandos cosméticos, prioridad de cola
+    vip+         → slots reservados, kits adicionales
+      staff      → moderación, /kick, /mute, /ban (con log)
+        admin    → acceso total + gestión de nodos</code></pre>
+          </div>
+          <p>
+            Los rangos de la tienda (VIP, VIP+) se asignan automáticamente vía la integración
+            con el sistema de compras, sin intervención manual del equipo de administración.
+          </p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- SHOP -->
+      <section class="detail-section">
+        <div class="section-label-col">
+          <p class="section-label">06 · Tienda con entrega automática</p>
+        </div>
+        <div class="section-body">
+          <p>
+            La tienda externa se integra directamente con el clúster mediante un sistema de
+            <strong>entrega automática en juego</strong>: el jugador completa la compra en la web
+            y recibe los ítems o el rango sin intervención del equipo.
+          </p>
+
+          <div class="auth-flows">
+            <div class="auth-flow">
+              <div class="auth-flow-header">
+                <span class="auth-badge auth-premium">Flujo</span>
+                <span class="auth-flow-title">Proceso de compra → entrega</span>
+              </div>
+              <ol class="auth-steps">
+                <li>Jugador realiza la compra en la tienda web (Tebex / panel propio)</li>
+                <li>Tienda dispara un webhook HTTP hacia el listener del proxy</li>
+                <li>Listener valida la firma del webhook y extrae UUID + producto comprado</li>
+                <li>Si el jugador está conectado: entrega inmediata vía comando en el nodo actual</li>
+                <li>Si está desconectado: entrega encolada en PostgreSQL, se ejecuta al siguiente login</li>
+              </ol>
+            </div>
+          </div>
+
+          <p>
+            Los productos se mapean a acciones configurables: ejecución de comandos con privilegios,
+            asignación de grupos en LuckPerms, entrega de ítems en inventario o modificación de
+            metadatos en la base de datos del jugador. La cola de entregas pendientes garantiza
+            que ninguna compra se pierde ante desconexiones.
+          </p>
+
+          <div class="code-block">
+            <p class="code-label">Tabla de entregas pendientes (PostgreSQL)</p>
+            <pre><code>pending_deliveries
+  ├── id          SERIAL PRIMARY KEY
+  ├── player_uuid UUID NOT NULL
+  ├── product_id  VARCHAR(64) NOT NULL
+  ├── commands    JSONB          -- lista de comandos a ejecutar
+  ├── purchased_at TIMESTAMPTZ
+  └── delivered_at TIMESTAMPTZ  -- NULL hasta ejecución</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- MANAGEMENT -->
+      <section class="detail-section">
+        <div class="section-label-col">
+          <p class="section-label">07 · Gestión operativa</p>
+        </div>
+        <div class="section-body">
+          <p>
+            Toda la infraestructura de procesos corre sobre <strong>Pterodactyl Panel</strong>,
+            desplegado en una VM dedicada en <strong>Proxmox</strong>. Pterodactyl gestiona:
+          </p>
+          <ul class="detail-list">
+            <li>Arranque, parada y reinicio de cada nodo de forma independiente</li>
+            <li>Límites de recursos por contenedor (CPU, RAM, swap, disco)</li>
+            <li>Acceso a consola en tiempo real con logs por nodo</li>
+            <li>Gestión de backups programados del mundo y la base de datos</li>
+            <li>Control de usuarios con permisos granulares por servidor</li>
+          </ul>
+          <p>
+            El acceso al panel está restringido por IP y protegido con Caddy como reverse proxy HTTPS,
+            con certificado emitido por Let's Encrypt.
+          </p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- GALLERY -->
+      <section class="detail-section detail-section--full">
+        <p class="section-label">08 · Capturas</p>
+        <div class="gallery-grid">
+          <div class="gallery-placeholder">
+            <span class="gallery-icon">⬛</span>
+            <p>Panel Pterodactyl — vista de nodos</p>
+          </div>
+          <div class="gallery-placeholder">
+            <span class="gallery-icon">⬛</span>
+            <p>Redis CLI — sesiones activas</p>
+          </div>
+          <div class="gallery-placeholder">
+            <span class="gallery-icon">⬛</span>
+            <p>Flujo de autenticación TOTP</p>
+          </div>
+          <div class="gallery-placeholder">
+            <span class="gallery-icon">⬛</span>
+            <p>Topología en Proxmox</p>
+          </div>
+        </div>
+        <p class="gallery-note">Capturas en preparación.</p>
+      </section>
+
+      <!-- FOOTER NAV -->
+      <div class="detail-footer">
+        <a href="/#proyectos" class="btn-outline">← Volver a proyectos</a>
+        <a href="/#contacto" class="btn-primary">Hablamos →</a>
+      </div>
+
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  .project-detail {
+    padding-top: calc(var(--nav-h) + 3rem);
+    padding-bottom: 6rem;
+  }
+
+  /* BREADCRUMB */
+  .breadcrumb { margin-bottom: 2.5rem; }
+
+  .back-link {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover { color: var(--accent); }
+
+  /* HEADER */
+  .detail-header { margin-bottom: 3rem; }
+
+  .project-type {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .detail-header h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  .header-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* SECTIONS */
+  .detail-section {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+    padding-block: 3rem;
+  }
+
+  .detail-section--full {
+    grid-template-columns: 1fr;
+  }
+
+  .section-label-col { padding-top: 0.15rem; }
+
+  .section-body p {
+    color: var(--text);
+    opacity: 0.85;
+    line-height: 1.8;
+    margin-bottom: 1.2rem;
+    font-size: 1rem;
+  }
+
+  .section-body p strong { color: var(--accent); font-weight: 500; }
+
+  /* TOPOLOGY DIAGRAM */
+  .topology-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .topo-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .topo-backends { align-items: stretch; }
+
+  .topo-infra-row {
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  /* MULTI-REGION LAYOUT */
+  .topo-regions {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .topo-region {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1rem;
+  }
+
+  .topo-region-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--accent);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+
+  .topo-region-nodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+  }
+
+  .topo-sm {
+    min-width: unset;
+    flex: unset;
+    max-width: unset;
+    padding: 0.6rem 0.75rem;
+    gap: 0.15rem;
+  }
+
+  .topo-sm .topo-name {
+    font-size: 0.78rem;
+  }
+
+  .topo-region-sep {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .topo-region-sep span {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    opacity: 0.6;
+  }
+
+  @media (max-width: 900px) {
+    .topo-regions {
+      grid-template-columns: 1fr;
+    }
+
+    .topo-region-sep {
+      padding: 0.25rem 0;
+    }
+
+    .topo-region-sep span {
+      writing-mode: horizontal-tb;
+    }
+  }
+
+  .topo-node {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.2rem 1.5rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    min-width: 180px;
+    flex: 1;
+    max-width: 240px;
+  }
+
+  .topo-entry {
+    border-color: rgba(37,99,235,0.35);
+    background: rgba(37,99,235,0.04);
+    max-width: 340px;
+  }
+
+  .topo-infra {
+    border-color: rgba(184,146,10,0.35);
+    background: rgba(184,146,10,0.04);
+    max-width: 340px;
+  }
+
+  .topo-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .topo-name {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--heading);
+  }
+
+  .topo-detail {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .topo-arrow {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    padding-block: 0.25rem;
+  }
+
+  /* AUTH FLOWS */
+  .auth-flows {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  .auth-flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+
+  .auth-flow-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .auth-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius);
+    border: 1px solid;
+  }
+
+  .auth-premium {
+    color: var(--accent);
+    border-color: rgba(37,99,235,0.35);
+    background: rgba(37,99,235,0.05);
+  }
+
+  .auth-offline {
+    color: var(--accent2);
+    border-color: rgba(184,146,10,0.35);
+    background: rgba(184,146,10,0.05);
+  }
+
+  .auth-2fa {
+    color: #92400e;
+    border-color: rgba(146,64,14,0.3);
+    background: rgba(146,64,14,0.05);
+  }
+
+  .auth-flow-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--heading);
+  }
+
+  .auth-steps {
+    list-style: none;
+    counter-reset: steps;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0;
+  }
+
+  .auth-steps li {
+    counter-increment: steps;
+    display: flex;
+    gap: 0.85rem;
+    align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .auth-steps li::before {
+    content: counter(steps, decimal-leading-zero);
+    font-size: 0.62rem;
+    color: var(--border);
+    flex-shrink: 0;
+    padding-top: 0.05rem;
+  }
+
+  .auth-steps code {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    background: rgba(37,99,235,0.06);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+  }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-block: 1.25rem;
+    overflow-x: auto;
+  }
+
+  .code-label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .code-block pre {
+    margin: 0;
+    padding: 0;
+  }
+
+  .code-block code {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text);
+    line-height: 1.7;
+    white-space: pre;
+  }
+
+  /* DETAIL LIST */
+  .detail-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-block: 1rem;
+  }
+
+  .detail-list li {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    padding-left: 1.25rem;
+    position: relative;
+    line-height: 1.55;
+  }
+
+  .detail-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 0.7rem;
+  }
+
+  /* GALLERY */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .gallery-placeholder {
+    background: var(--bg2);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .gallery-icon {
+    font-size: 2rem;
+    opacity: 0.15;
+  }
+
+  .gallery-placeholder p {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+  }
+
+  .gallery-note {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--border);
+    margin-top: 1rem;
+    letter-spacing: 0.06em;
+  }
+
+  /* FOOTER NAV */
+  .detail-footer {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .detail-section {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    .topo-backends { flex-direction: column; align-items: center; }
+    .topo-node { max-width: 100%; width: 100%; }
+  }
+</style>
