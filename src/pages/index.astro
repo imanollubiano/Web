@@ -62,6 +62,8 @@ function getLogoSvg(logoPath: string | null): string | null {
       const color = brandColors[slug] ?? '#334155';
       svg = svg.replaceAll('currentColor', color);
     }
+    // Strip <title> tags — reduces DOM depth and element count
+    svg = svg.replace(/<title>[^<]*<\/title>/g, '');
     return svg;
   } catch {
     return null;
@@ -443,7 +445,7 @@ const techLogos: Record<string, string | null> = {
           rel="noopener noreferrer"
           class="btn-outline"
         >LinkedIn ↗</a>
-        <a href="mailto:imanol@imanollubiano.dev" class="btn-outline">Email directo ↗</a>
+        <a href="mailto:contacto@imanol.info" class="btn-outline">Email directo ↗</a>
       </div>
     </div>
   </section>

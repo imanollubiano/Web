@@ -50,8 +50,8 @@ const year = new Date().getFullYear();
   <link rel="icon" type="image/svg+xml" href="/images/nmj-isologo-color.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" /></noscript>
 
   <!-- JSON-LD -->
   <script type="application/ld+json">
@@ -351,9 +351,10 @@ const year = new Date().getFullYear();
 <script>
   // ── SCROLL PROGRESS ──
   const progressBar = document.getElementById('scroll-progress')!;
+  let scrollMax = document.body.scrollHeight - window.innerHeight;
+  window.addEventListener('resize', () => { scrollMax = document.body.scrollHeight - window.innerHeight; }, { passive: true });
   window.addEventListener('scroll', () => {
-    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
-    progressBar.style.width = Math.min(pct, 100) + '%';
+    progressBar.style.width = Math.min(window.scrollY / scrollMax * 100, 100) + '%';
   }, { passive: true });
 
   // ── THEME TOGGLE ──
