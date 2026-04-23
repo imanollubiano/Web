@@ -215,9 +215,9 @@ export const projects = [
   },
   {
     type: 'Infraestructura · Sistemas Distribuidos',
-    title: 'Clúster proxy multi-nodo con autenticación híbrida',
+    title: 'hynix.network',
     description:
-      'Red de dos regiones (EU y LATAM) sobre Waterfall/BungeeCord con 5 nodos por región, autenticación híbrida (Mojang API + BCrypt), 2FA TOTP, permisos distribuidos con LuckPerms+PostgreSQL y entrega automática de tienda. Gestionado con Pterodactyl sobre Proxmox.',
+      'Clúster proxy multi-nodo con autenticación híbrida. Red de dos regiones (EU y LATAM) sobre Waterfall/BungeeCord con 5 nodos por región, autenticación híbrida (Mojang API + BCrypt), 2FA TOTP, permisos distribuidos con LuckPerms+PostgreSQL y entrega automática de tienda. Gestionado con Pterodactyl sobre Proxmox.',
     tags: ['Waterfall', 'BungeeCord', 'Redis', 'PostgreSQL', 'LuckPerms', 'TOTP', 'Pterodactyl', 'Proxmox'],
     wip: false,
     href: '/projects/minecraft-cluster',
