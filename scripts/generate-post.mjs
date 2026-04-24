@@ -109,8 +109,22 @@ REQUISITOS DEL CONTENIDO:
 
   fs.writeFileSync(outputPath, content + '\n', 'utf-8');
 
+  // Extraer el título del frontmatter generado
+  const titleMatch = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+  const articleTitle = titleMatch ? titleMatch[1].trim() : topic;
+  const articleSlug = `${year}-${month}-post`;
+
   console.log(`✅  Artículo guardado en: ${outputPath}`);
+  console.log(`    Título: ${articleTitle}`);
   console.log(`    Tokens: ${message.usage.input_tokens} entrada / ${message.usage.output_tokens} salida`);
+
+  // Escribir outputs para GitHub Actions
+  const githubOutput = process.env.GITHUB_OUTPUT;
+  if (githubOutput) {
+    fs.appendFileSync(githubOutput, `article_title=${articleTitle}\n`);
+    fs.appendFileSync(githubOutput, `article_date=${isoDate}\n`);
+    fs.appendFileSync(githubOutput, `article_slug=${articleSlug}\n`);
+  }
 }
 
 main().catch((err) => {

@@ -28,6 +28,7 @@ jobs:
         run: npm install @anthropic-ai/sdk --no-save
 
       - name: Generar artículo
+        id: generate
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node scripts/generate-post.mjs
@@ -43,3 +44,47 @@ jobs:
             git commit -m "chore: artículo automático $(date +'%B %Y')"
             git push
           fi
+
+      - name: Notificar Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ARTICLE_TITLE: ${{ steps.generate.outputs.article_title }}
+          ARTICLE_DATE: ${{ steps.generate.outputs.article_date }}
+          ARTICLE_SLUG: ${{ steps.generate.outputs.article_slug }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then
+            COLOR=5763719
+            EMBED_TITLE="📝 Nuevo artículo publicado"
+          else
+            COLOR=15548997
+            EMBED_TITLE="❌ Error al generar artículo"
+          fi
+
+          ARTICLE_URL="https://imanol.info/blog/${ARTICLE_SLUG:-}"
+          DISPLAY_TITLE="${ARTICLE_TITLE:-No disponible}"
+          DISPLAY_DATE="${ARTICLE_DATE:-No disponible}"
+
+          PAYLOAD=$(jq -n \
+            --arg embed_title "$EMBED_TITLE" \
+            --argjson color "$COLOR" \
+            --arg article_title "$DISPLAY_TITLE" \
+            --arg article_date "$DISPLAY_DATE" \
+            --arg article_url "$ARTICLE_URL" \
+            '{
+              embeds: [{
+                title: $embed_title,
+                color: $color,
+                fields: [
+                  {name: "Artículo", value: $article_title, inline: false},
+                  {name: "Fecha",    value: $article_date,  inline: true},
+                  {name: "Enlace",   value: $article_url,   inline: true}
+                ],
+                footer: {text: "Portfolio de Imanol Lubiano"}
+              }]
+            }')
+
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
