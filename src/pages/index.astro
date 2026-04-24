@@ -473,7 +473,7 @@ const techLogos: Record<string, string | null> = {
 
         <div class="recent-posts">
           {recentPosts.map((post) => (
-            <a href={`/blog/${post.slug}`} class="recent-post reveal">
+            <a href={`/blog/${post.id}`} class="recent-post reveal">
               <time datetime={post.data.date.toISOString()} class="recent-post-date">
                 {formatPostDate(post.data.date)}
               </time>
