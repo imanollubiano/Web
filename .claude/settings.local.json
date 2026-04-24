@@ -13,7 +13,8 @@
       "WebFetch(domain:az-icons.com)",
       "WebFetch(domain:icons8.com)",
       "WebFetch(domain:commons.wikimedia.org)",
-      "WebFetch(domain:upload.wikimedia.org)"
+      "WebFetch(domain:upload.wikimedia.org)",
+      "Bash(npm list *)"
     ]
   }
 }
