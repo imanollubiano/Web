@@ -45,10 +45,10 @@ async function main() {
   const blogDir = path.join(process.cwd(), 'src/content/blog');
   const outputPath = path.join(blogDir, filename);
 
-  if (fs.existsSync(outputPath)) {
-    console.log(`ℹ️   El artículo de ${year}-${month} ya existe, nada que hacer.`);
-    process.exit(0);
-  }
+  // if (fs.existsSync(outputPath)) {
+  //   console.log(`ℹ️   El artículo de ${year}-${month} ya existe, nada que hacer.`);
+  //   process.exit(0);
+  // }
 
   if (!fs.existsSync(blogDir)) {
     fs.mkdirSync(blogDir, { recursive: true });
