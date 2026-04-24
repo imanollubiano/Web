@@ -11,8 +11,9 @@ const {
   description = 'Administrador de sistemas especializado en optimización de procesos IT, automatización y arquitectura de infraestructura moderna.',
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://imanollubiano.dev');
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://imanol.info');
 const year = new Date().getFullYear();
+const isBlog = Astro.url.pathname.startsWith('/blog');
 ---
 
 <!doctype html>
@@ -73,6 +74,7 @@ const year = new Date().getFullYear();
         <li><a href="/#stack">Stack</a></li>
         <li><a href="/#proyectos">Proyectos</a></li>
         <li><a href="/#contacto">Contacto</a></li>
+        <li><a href="/blog" class={isBlog ? 'nav-active' : ''}>Blog</a></li>
       </ul>
       <div class="nav-actions">
         <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
@@ -100,6 +102,7 @@ const year = new Date().getFullYear();
       <a href="/#stack">Stack</a>
       <a href="/#proyectos">Proyectos</a>
       <a href="/#contacto">Contacto</a>
+      <a href="/blog">Blog</a>
     </nav>
   </div>
 
