@@ -1,7 +1,7 @@
 ---
 title: "GPOs en Active Directory: estructura, delegación y buenas prácticas"
 description: "Guía práctica para diseñar una jerarquía de GPOs escalable, aplicar delegación por OU y evitar los errores más comunes en entornos Windows Server."
-date: 2024-12-03
+date: 2026-04-15
 tags: ["Active Directory", "GPOs", "Windows Server", "Sysadmin"]
 draft: false
 ---

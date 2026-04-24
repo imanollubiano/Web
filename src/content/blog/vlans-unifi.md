@@ -1,7 +1,7 @@
 ---
 title: "Segmentación de red con VLANs en UniFi: diseño práctico para entornos empresariales"
 description: "Cómo diseñar e implementar VLANs con UniFi Network para aislar tráfico, mejorar seguridad y facilitar la gestión en redes corporativas."
-date: 2024-11-15
+date: 2026-04-07
 tags: ["Redes", "UniFi", "VLANs", "Seguridad"]
 draft: false
 ---
