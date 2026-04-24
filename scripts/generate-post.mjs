@@ -91,7 +91,7 @@ REQUISITOS DEL CONTENIDO:
   console.log('🤖  Llamando a la API de Anthropic...');
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-5-20251022',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 2000,
     messages: [{ role: 'user', content: prompt }],
   });
