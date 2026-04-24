@@ -109,21 +109,23 @@ REQUISITOS DEL CONTENIDO:
 
   fs.writeFileSync(outputPath, content + '\n', 'utf-8');
 
-  // Extraer el título del frontmatter generado
-  const titleMatch = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
-  const articleTitle = titleMatch ? titleMatch[1].trim() : topic;
+  // Extraer el título del frontmatter — regex robusta que elimina comillas envolventes
+  const titleMatch = content.match(/^title:\s*"([^"]+)"/m) || content.match(/^title:\s*'([^']+)'/m) || content.match(/^title:\s*(.+)$/m);
+  const articleTitle = (titleMatch ? titleMatch[1] : topic).trim();
   const articleSlug = `${year}-${month}-post`;
 
   console.log(`✅  Artículo guardado en: ${outputPath}`);
   console.log(`    Título: ${articleTitle}`);
   console.log(`    Tokens: ${message.usage.input_tokens} entrada / ${message.usage.output_tokens} salida`);
 
-  // Escribir outputs para GitHub Actions
+  // Escribir outputs para GitHub Actions usando formato heredoc (seguro con cualquier carácter)
   const githubOutput = process.env.GITHUB_OUTPUT;
   if (githubOutput) {
-    fs.appendFileSync(githubOutput, `article_title=${articleTitle}\n`);
-    fs.appendFileSync(githubOutput, `article_date=${isoDate}\n`);
-    fs.appendFileSync(githubOutput, `article_slug=${articleSlug}\n`);
+    const delim = 'GHOUTEOF';
+    fs.appendFileSync(githubOutput, `article_title<<${delim}\n${articleTitle}\n${delim}\n`, 'utf-8');
+    fs.appendFileSync(githubOutput, `article_date<<${delim}\n${isoDate}\n${delim}\n`, 'utf-8');
+    fs.appendFileSync(githubOutput, `article_slug<<${delim}\n${articleSlug}\n${delim}\n`, 'utf-8');
+    console.log('    Outputs escritos a GITHUB_OUTPUT');
   }
 }
 
