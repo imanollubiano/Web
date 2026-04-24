@@ -1,0 +1,45 @@
+name: Publicación mensual automática
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'   # día 1 de cada mes a las 09:00 UTC
+  workflow_dispatch:        # permite lanzarlo manualmente desde GitHub Actions
+
+permissions:
+  contents: write
+
+jobs:
+  generate-post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependencias del proyecto
+        run: npm install
+
+      - name: Instalar SDK de Anthropic
+        run: npm install @anthropic-ai/sdk --no-save
+
+      - name: Generar artículo
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/generate-post.mjs
+
+      - name: Commit y push del artículo generado
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/content/blog/
+          if git diff --staged --quiet; then
+            echo "Sin cambios que commitear (el artículo de este mes ya existía)."
+          else
+            git commit -m "chore: artículo automático $(date +'%B %Y')"
+            git push
+          fi
