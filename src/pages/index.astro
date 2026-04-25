@@ -422,8 +422,7 @@ const techLogos: Record<string, string | null> = {
         hablar de infraestructura — escríbeme.
       </p>
 
-      <form class="contact-form reveal" name="contact" method="POST" data-netlify="true" novalidate>
-        <input type="hidden" name="form-name" value="contact" />
+      <form id="contact-form" class="contact-form reveal" novalidate>
         <div class="form-row">
           <div class="form-group">
             <label for="name">Nombre</label>
@@ -442,7 +441,8 @@ const techLogos: Record<string, string | null> = {
           <label for="message">Mensaje</label>
           <textarea id="message" name="message" rows="5" placeholder="Cuéntame..." required></textarea>
         </div>
-        <button type="submit" class="btn-primary" style="width:100%;justify-content:center">
+        <div id="form-status" role="alert" aria-live="polite"></div>
+        <button id="form-submit" type="submit" class="btn-primary" style="width:100%;justify-content:center">
           Enviar mensaje →
         </button>
       </form>
@@ -1252,6 +1252,29 @@ const techLogos: Record<string, string | null> = {
     margin-top: 1.5rem;
   }
 
+  #form-status {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  #form-status.success {
+    display: block;
+    color: #4ade80;
+    background: rgba(74,222,128,0.07);
+    border: 1px solid rgba(74,222,128,0.25);
+  }
+
+  #form-status.error {
+    display: block;
+    color: #f87171;
+    background: rgba(248,113,113,0.07);
+    border: 1px solid rgba(248,113,113,0.25);
+  }
+
   /* ── BLOG RECIENTE ── */
   .blog-header {
     display: flex;
@@ -1391,6 +1414,53 @@ const techLogos: Record<string, string | null> = {
   }, { threshold: 0.6 });
 
   statNums.forEach((el) => counterObserver.observe(el));
+
+  // ── CONTACT FORM ──
+  const contactForm = document.getElementById('contact-form') as HTMLFormElement | null;
+  if (contactForm) {
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('form-submit') as HTMLButtonElement;
+      const statusEl  = document.getElementById('form-status') as HTMLElement;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+      statusEl.className = '';
+      statusEl.textContent = '';
+
+      const data = {
+        name:    (document.getElementById('name')    as HTMLInputElement).value.trim(),
+        email:   (document.getElementById('email')   as HTMLInputElement).value.trim(),
+        subject: (document.getElementById('subject') as HTMLInputElement).value.trim(),
+        message: (document.getElementById('message') as HTMLTextAreaElement).value.trim(),
+      };
+
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        const json = await res.json() as { success: boolean; error?: string };
+
+        if (json.success) {
+          statusEl.className = 'success';
+          statusEl.textContent = '¡Mensaje enviado! Te responderé pronto.';
+          contactForm.reset();
+        } else {
+          throw new Error(json.error ?? 'Error desconocido');
+        }
+      } catch (err) {
+        statusEl.className = 'error';
+        statusEl.textContent = `No se pudo enviar el mensaje. ${err instanceof Error ? err.message : 'Inténtalo de nuevo.'}`;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar mensaje →';
+      }
+    });
+  }
 
   // Tab switching
   document.querySelectorAll<HTMLButtonElement>('.stack-tab').forEach((btn) => {
