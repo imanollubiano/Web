@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="es" data-astro-cid-37fxchfa> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- No-flash theme: aplica .light antes del primer paint --><script>
+    (function(){if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');})();
+  </script><!-- SEO primario --><title>Gestión de contraseñas y secretos en infraestructura: Passbolt, Vault y buenas prácticas — Imanol Lubiano</title><meta name="description" content="Análisis técnico comparativo de soluciones de gestión de secretos empresariales, implementación de Passbolt y HashiCorp Vault con casos prácticos y configuraciones seguras."><link rel="canonical" href="https://imanol.info/blog/2026-04-post/"><meta name="author" content="Imanol Lubiano"><meta name="robots" content="index, follow"><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:url" content="https://imanol.info/blog/2026-04-post/"><meta property="og:title" content="Gestión de contraseñas y secretos en infraestructura: Passbolt, Vault y buenas prácticas — Imanol Lubiano"><meta property="og:description" content="Análisis técnico comparativo de soluciones de gestión de secretos empresariales, implementación de Passbolt y HashiCorp Vault con casos prácticos y configuraciones seguras."><meta property="og:locale" content="es_ES"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Gestión de contraseñas y secretos en infraestructura: Passbolt, Vault y buenas prácticas — Imanol Lubiano"><meta name="twitter:description" content="Análisis técnico comparativo de soluciones de gestión de secretos empresariales, implementación de Passbolt y HashiCorp Vault con casos prácticos y configuraciones seguras."><!-- Performance --><meta name="theme-color" content="#0d1117"><link rel="icon" type="image/svg+xml" href="/images/nmj-isologo-color.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap"></noscript><!-- JSON-LD --><script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Person","name":"Imanol Lubiano","jobTitle":"Systems Administrator & IT Process Optimization","url":"https://imanollubiano.dev","sameAs":["https://www.linkedin.com/in/imanol-lubiano-428039279/"]}
+  </script><link rel="stylesheet" href="/_astro/BaseLayout.CWZ6hJEK.css">
+<style>.prose-wrap[data-astro-cid-4sn4zg3r]{max-width:720px;margin-inline:auto;padding:calc(var(--nav-h) + 4rem) 2.5rem 6rem}.back-link[data-astro-cid-4sn4zg3r]{display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:.72rem;color:var(--muted);text-decoration:none;letter-spacing:.06em;text-transform:uppercase;transition:color .2s;margin-bottom:2.5rem}.back-link[data-astro-cid-4sn4zg3r]:hover{color:var(--accent)}.post-meta[data-astro-cid-4sn4zg3r]{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}.post-date[data-astro-cid-4sn4zg3r]{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}.post-tags[data-astro-cid-4sn4zg3r]{display:flex;gap:.4rem;flex-wrap:wrap}.post-title[data-astro-cid-4sn4zg3r]{font-family:var(--font-display);font-size:clamp(1.8rem,5vw,2.8rem);font-weight:800;color:var(--heading);letter-spacing:-.02em;line-height:1.15;margin-bottom:1rem}.post-desc[data-astro-cid-4sn4zg3r]{font-size:1.05rem;color:var(--muted);line-height:1.7;margin-bottom:2rem}.post-divider[data-astro-cid-4sn4zg3r]{width:100%;height:1px;background:linear-gradient(90deg,var(--border),transparent);margin-bottom:2.5rem}.prose[data-astro-cid-4sn4zg3r]{font-size:1.05rem;line-height:1.9;color:var(--text)}.prose[data-astro-cid-4sn4zg3r] h2{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--heading);letter-spacing:-.01em;margin-top:3rem;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}.prose[data-astro-cid-4sn4zg3r] h3{font-family:var(--font-display);font-size:1.15rem;font-weight:700;color:var(--heading);margin-top:2rem;margin-bottom:.75rem}.prose[data-astro-cid-4sn4zg3r] p{margin-bottom:1.4rem}.prose[data-astro-cid-4sn4zg3r] strong{color:var(--heading);font-weight:500}.prose[data-astro-cid-4sn4zg3r] a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;transition:opacity .2s}.prose[data-astro-cid-4sn4zg3r] a:hover{opacity:.75}.prose[data-astro-cid-4sn4zg3r] ul,.prose[data-astro-cid-4sn4zg3r] ol{padding-left:1.5rem;margin-bottom:1.4rem}.prose[data-astro-cid-4sn4zg3r] li{margin-bottom:.4rem}.prose[data-astro-cid-4sn4zg3r] li::marker{color:var(--accent)}.prose[data-astro-cid-4sn4zg3r] :not(pre)>code{font-family:var(--font-mono);font-size:.88em;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.15em .4em;color:var(--accent)}.prose[data-astro-cid-4sn4zg3r] pre{background:var(--bg2)!important;border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;overflow-x:auto;margin-bottom:1.75rem;font-family:var(--font-mono);font-size:.85rem;line-height:1.7}.prose[data-astro-cid-4sn4zg3r] pre code{background:none!important;border:none!important;padding:0;font-size:inherit;color:inherit}.prose[data-astro-cid-4sn4zg3r] table{width:100%;border-collapse:collapse;margin-bottom:1.75rem;font-size:.9rem}.prose[data-astro-cid-4sn4zg3r] th{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);padding:.6rem 1rem;text-align:left}.prose[data-astro-cid-4sn4zg3r] td{border-bottom:1px solid var(--border);padding:.75rem 1rem;color:var(--text);vertical-align:top}.prose[data-astro-cid-4sn4zg3r] tr:last-child td{border-bottom:none}.prose[data-astro-cid-4sn4zg3r] tr:hover td{background:var(--bg2)}.prose[data-astro-cid-4sn4zg3r] blockquote{border-left:2px solid var(--accent);padding-left:1.25rem;margin-left:0;margin-bottom:1.4rem;color:var(--muted);font-style:italic}.prose-footer[data-astro-cid-4sn4zg3r]{margin-top:4rem}@media(max-width:640px){.prose-wrap[data-astro-cid-4sn4zg3r]{padding:calc(var(--nav-h) + 2.5rem) 1.25rem 4rem}.prose[data-astro-cid-4sn4zg3r] pre{padding:1rem;font-size:.78rem}}
+</style></head> <body data-astro-cid-37fxchfa> <!-- Scroll progress bar --> <div class="scroll-progress" id="scroll-progress" aria-hidden="true" data-astro-cid-37fxchfa></div> <!-- NAV --> <nav id="nav" data-astro-cid-37fxchfa> <div class="nav-inner" data-astro-cid-37fxchfa> <a href="/" class="nav-logo" data-astro-cid-37fxchfa>IL<span data-astro-cid-37fxchfa>://</span>portfolio</a> <ul class="nav-links" role="list" data-astro-cid-37fxchfa> <li data-astro-cid-37fxchfa><a href="/#sobre" data-astro-cid-37fxchfa>Sobre mí</a></li> <li data-astro-cid-37fxchfa><a href="/#experiencia" data-astro-cid-37fxchfa>Experiencia</a></li> <li data-astro-cid-37fxchfa><a href="/#stack" data-astro-cid-37fxchfa>Stack</a></li> <li data-astro-cid-37fxchfa><a href="/#proyectos" data-astro-cid-37fxchfa>Proyectos</a></li> <li data-astro-cid-37fxchfa><a href="/#contacto" data-astro-cid-37fxchfa>Contacto</a></li> <li data-astro-cid-37fxchfa><a href="/blog" class="nav-active" data-astro-cid-37fxchfa>Blog</a></li> </ul> <div class="nav-actions" data-astro-cid-37fxchfa> <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema" data-astro-cid-37fxchfa> <!-- Moon (dark mode) --> <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-37fxchfa> <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" data-astro-cid-37fxchfa></path> </svg> <!-- Sun (light mode) --> <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-astro-cid-37fxchfa> <circle cx="12" cy="12" r="4" data-astro-cid-37fxchfa></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41" data-astro-cid-37fxchfa></path> </svg> </button> <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Abrir menú" aria-expanded="false" data-astro-cid-37fxchfa> <span data-astro-cid-37fxchfa></span><span data-astro-cid-37fxchfa></span><span data-astro-cid-37fxchfa></span> </button> </div> </div> </nav> <!-- Mobile overlay --> <div class="mobile-menu" id="mobile-menu" aria-hidden="true" data-astro-cid-37fxchfa> <nav class="mobile-nav" role="navigation" data-astro-cid-37fxchfa> <a href="/#sobre" data-astro-cid-37fxchfa>Sobre mí</a> <a href="/#experiencia" data-astro-cid-37fxchfa>Experiencia</a> <a href="/#stack" data-astro-cid-37fxchfa>Stack</a> <a href="/#proyectos" data-astro-cid-37fxchfa>Proyectos</a> <a href="/#contacto" data-astro-cid-37fxchfa>Contacto</a> <a href="/blog" data-astro-cid-37fxchfa>Blog</a> </nav> </div> <!-- MAIN --> <main data-astro-cid-37fxchfa>  <article class="prose-wrap" data-astro-cid-4sn4zg3r> <div class="prose-header" data-astro-cid-4sn4zg3r> <a href="/blog" class="back-link" data-astro-cid-4sn4zg3r>← Volver al blog</a> <div class="post-meta" data-astro-cid-4sn4zg3r> <time datetime="2026-04-01T00:00:00.000Z" class="post-date" data-astro-cid-4sn4zg3r> 1 de abril de 2026 </time> <div class="post-tags" data-astro-cid-4sn4zg3r> <span class="project-tag" data-astro-cid-4sn4zg3r>Seguridad</span><span class="project-tag" data-astro-cid-4sn4zg3r>DevSecOps</span><span class="project-tag" data-astro-cid-4sn4zg3r>Gestión de secretos</span><span class="project-tag" data-astro-cid-4sn4zg3r>Infraestructura</span> </div> </div> <h1 class="post-title" data-astro-cid-4sn4zg3r>Gestión de contraseñas y secretos en infraestructura: Passbolt, Vault y buenas prácticas</h1> <p class="post-desc" data-astro-cid-4sn4zg3r>Análisis técnico comparativo de soluciones de gestión de secretos empresariales, implementación de Passbolt y HashiCorp Vault con casos prácticos y configuraciones seguras.</p> <div class="post-divider" data-astro-cid-4sn4zg3r></div> </div> <div class="prose" data-astro-cid-4sn4zg3r> <h2 id="introducción">Introducción</h2>
+<p>La gestión centralizada de contraseñas y secretos es un pilar fundamental en infraestructuras modernas. Después de una década trabajando con sistemas en producción, he visto cómo el almacenamiento descentralizado de credenciales causa brechas de seguridad, cumplimiento deficiente y auditorías fallidas. Este artículo aborda soluciones probadas: Passbolt para equipos colaborativos y HashiCorp Vault para orquestación compleja de secretos.</p>
+<h2 id="el-problema-real-en-producción">El problema real en producción</h2>
+<p>En entornos empresariales típicos, las credenciales se dispersan en:</p>
+<ul>
+<li>Archivos <code>.env</code> comprometidos en repositorios Git</li>
+<li>Documentos compartidos en Confluence sin control de acceso</li>
+<li>Scripts legacy con contraseñas hardcodeadas</li>
+<li>Notas personales de administradores</li>
+</ul>
+<p>Esta fragmentación genera:</p>
+<ul>
+<li><strong>Compliance gaps</strong>: Imposible auditar quién accedió a qué credencial</li>
+<li><strong>Credential sprawl</strong>: Múltiples copias de la misma credencial sin sincronización</li>
+<li><strong>Rotación manual</strong>: Cambios manuales de contraseñas sin automatización</li>
+<li><strong>Revocación lenta</strong>: Días o semanas para revocar acceso tras un incidente</li>
+</ul>
+<h2 id="passbolt-gestión-colaborativa-de-contraseñas">Passbolt: Gestión colaborativa de contraseñas</h2>
+<p>Passbolt es una solución de código abierto diseñada para equipos que necesitan compartir contraseñas con control granular. A diferencia de gestores personales (1Password, LastPass), Passbolt está orientado a sysadmins y DevOps.</p>
+<h3 id="arquitectura-y-seguridad">Arquitectura y seguridad</h3>
+<p>Passbolt utiliza encriptación OpenPGP de extremo a extremo. Las contraseñas se encriptan en el cliente antes de transmitirse al servidor, lo que significa que el servidor nunca almacena secretos en texto plano.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># Configuración básica de Passbolt en Docker</span></span>
+<span class="line"><span style="color:#85E89D">version</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'3.8'</span></span>
+<span class="line"><span style="color:#85E89D">services</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  passbolt</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">passbolt/passbolt:latest-ce</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      PASSBOLT_FLAVOUR</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ce</span></span>
+<span class="line"><span style="color:#85E89D">      PASSBOLT_SSL_FORCE</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"true"</span></span>
+<span class="line"><span style="color:#85E89D">      PASSBOLT_REGISTRATION_PUBLIC</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"false"</span></span>
+<span class="line"><span style="color:#85E89D">      PASSBOLT_DB_DEFAULT_HOST</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">db</span></span>
+<span class="line"><span style="color:#85E89D">      PASSBOLT_DB_DEFAULT_USERNAME</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">passbolt</span></span>
+<span class="line"><span style="color:#85E89D">      PASSBOLT_DB_DEFAULT_PASSWORD</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"${DB_PASS}"</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">./config/gpg:/etc/passbolt/gpg</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">./config/jwt:/etc/passbolt/jwt</span></span>
+<span class="line"><span style="color:#85E89D">    depends_on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">db</span></span>
+<span class="line"><span style="color:#85E89D">    ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">"443:443"</span></span>
+<span class="line"><span style="color:#E1E4E8">  </span></span>
+<span class="line"><span style="color:#85E89D">  db</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">mariadb:10.6</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      MARIADB_ROOT_PASSWORD</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"${ROOT_DB_PASS}"</span></span>
+<span class="line"><span style="color:#85E89D">      MARIADB_DATABASE</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">passbolt</span></span>
+<span class="line"><span style="color:#85E89D">      MARIADB_USER</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">passbolt</span></span>
+<span class="line"><span style="color:#85E89D">      MARIADB_PASSWORD</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"${DB_PASS}"</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">db_data:/var/lib/mysql</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  db_data</span><span style="color:#E1E4E8">:</span></span></code></pre>
+<h3 id="casos-prácticos-de-passbolt">Casos prácticos de Passbolt</h3>
+<p><strong>Caso 1</strong>: Equipo de 15 sysadmins que necesita acceso compartido a credenciales de MySQL, Redis y balanceadores de carga. Passbolt permite:</p>
+<ul>
+<li>Crear grupos de acceso (Prod DBA, Networking, Security)</li>
+<li>Auditar quién accedió a cada credencial con timestamps</li>
+<li>Revocar acceso inmediatamente sin cambiar la contraseña</li>
+<li>Integración con navegadores mediante plugin</li>
+</ul>
+<p><strong>Configuración de acceso granular</strong>:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># CLI de Passbolt para automatización</span></span>
+<span class="line"><span style="color:#B392F0">passbolt_cli</span><span style="color:#9ECBFF"> create-secret</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --name</span><span style="color:#9ECBFF"> "MySQL Prod Primary"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --username</span><span style="color:#9ECBFF"> "admin_prod"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --password</span><span style="color:#9ECBFF"> "$(</span><span style="color:#B392F0">openssl</span><span style="color:#9ECBFF"> rand </span><span style="color:#79B8FF">-base64</span><span style="color:#79B8FF"> 32</span><span style="color:#9ECBFF">)"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --description</span><span style="color:#9ECBFF"> "Master DB 192.168.1.50"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --uri</span><span style="color:#9ECBFF"> "mysql://192.168.1.50:3306"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Asignar a grupo específico</span></span>
+<span class="line"><span style="color:#B392F0">passbolt_cli</span><span style="color:#9ECBFF"> add-permission</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --resource-id</span><span style="color:#9ECBFF"> "resource-uuid"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --group-id</span><span style="color:#9ECBFF"> "group-prod-dba"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --permission</span><span style="color:#9ECBFF"> "read"</span></span></code></pre>
+<h2 id="hashicorp-vault-orquestación-de-secretos-en-escala">HashiCorp Vault: Orquestación de secretos en escala</h2>
+<p>Vault es la opción para infraestructuras complejas que requieren:</p>
+<ul>
+<li>Rotación automática de credenciales</li>
+<li>Tokens de corta duración (TTL dinámico)</li>
+<li>Integración con aplicaciones y CI/CD</li>
+<li>Múltiples backends de almacenamiento</li>
+</ul>
+<h3 id="arquitectura-de-vault">Arquitectura de Vault</h3>
+<p>Vault opera con tres componentes clave:</p>
+<ol>
+<li><strong>Storage Backend</strong>: Dónde se almacenan los secretos (Consul, S3, etcd)</li>
+<li><strong>Auth Methods</strong>: Cómo se autentica (Kubernetes, LDAP, AWS IAM, tokens)</li>
+<li><strong>Secret Engines</strong>: Cómo se generan/rotan (Database, PKI, SSH, Dynamic Secrets)</li>
+</ol>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="hcl"><code><span class="line"><span style="color:#6A737D"># Configuración de Vault para rotación automática de MySQL</span></span>
+<span class="line"><span style="color:#B392F0">vault</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  address</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "https://vault.prod.internal:8200"</span></span>
+<span class="line"><span style="color:#B392F0">  retry</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    num_retries</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 3</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Definir conexión a base de datos</span></span>
+<span class="line"><span style="color:#E1E4E8">vault write database</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">config</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">mysql \</span></span>
+<span class="line"><span style="color:#E1E4E8">  plugin_name</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">mysql</span><span style="color:#F97583">-</span><span style="color:#E1E4E8">database</span><span style="color:#F97583">-</span><span style="color:#E1E4E8">plugin \</span></span>
+<span class="line"><span style="color:#E1E4E8">  allowed_roles</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"readonly,admin"</span><span style="color:#E1E4E8"> \</span></span>
+<span class="line"><span style="color:#E1E4E8">  connection_url</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"{{username}}:{{password}}@tcp(mysql.prod:3306)/"</span><span style="color:#E1E4E8"> \</span></span>
+<span class="line"><span style="color:#E1E4E8">  username</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"vault_rotation"</span><span style="color:#E1E4E8"> \</span></span>
+<span class="line"><span style="color:#E1E4E8">  password</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"initial_password"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Crear rol con rotación automática (cada 24 horas)</span></span>
+<span class="line"><span style="color:#E1E4E8">vault write database</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">roles</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">readonly \</span></span>
+<span class="line"><span style="color:#E1E4E8">  db_name</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">mysql \</span></span>
+<span class="line"><span style="color:#E1E4E8">  creation_statements</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}'; GRANT SELECT ON *.* TO '{{name}}'@'%';"</span><span style="color:#E1E4E8"> \</span></span>
+<span class="line"><span style="color:#E1E4E8">  default_ttl</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"1h"</span><span style="color:#E1E4E8"> \</span></span>
+<span class="line"><span style="color:#E1E4E8">  max_ttl</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"24h"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Desde la aplicación: obtener credencial temporal</span></span>
+<span class="line"><span style="color:#E1E4E8">vault kv get database</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">readonly</span></span>
+<span class="line"><span style="color:#6A737D"># Retorna: user_readonly_randomsuffix con password que expira en 1h</span></span></code></pre>
+<h3 id="integración-con-kubernetes">Integración con Kubernetes</h3>
+<p>En entornos Kubernetes, Vault se integra mediante Kubernetes Auth Method:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># Configuración de pod que consume secretos de Vault</span></span>
+<span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ServiceAccount</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">app-sa</span></span>
+<span class="line"><span style="color:#85E89D">  namespace</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production</span></span>
+<span class="line"><span style="color:#B392F0">---</span></span>
+<span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Pod</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">app-pod</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  serviceAccountName</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">app-sa</span></span>
+<span class="line"><span style="color:#85E89D">  containers</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">app</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp:latest</span></span>
+<span class="line"><span style="color:#85E89D">    env</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">VAULT_ADDR</span></span>
+<span class="line"><span style="color:#85E89D">      value</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"https://vault.internal:8200"</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">VAULT_ROLE</span></span>
+<span class="line"><span style="color:#85E89D">      value</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"app-role"</span></span>
+<span class="line"><span style="color:#85E89D">    volumeMounts</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">jwt</span></span>
+<span class="line"><span style="color:#85E89D">      mountPath</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">/var/run/secrets/kubernetes.io/serviceaccount</span></span>
+<span class="line"><span style="color:#85E89D">  volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">jwt</span></span>
+<span class="line"><span style="color:#85E89D">    projected</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      sources</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">serviceAccountToken</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          audience</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">vault</span></span>
+<span class="line"><span style="color:#85E89D">          expirationSeconds</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">600</span></span>
+<span class="line"><span style="color:#85E89D">          path</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">token</span></span></code></pre>
+<h2 id="buenas-prácticas-consolidadas">Buenas prácticas consolidadas</h2>
+<h3 id="1-rotación-de-credenciales">1. Rotación de credenciales</h3>
+<p>Implementar rotación automática mensual. En Passbolt, usar webhooks; en Vault, usar secret engines dinámicos.</p>
+<h3 id="2-auditoría-exhaustiva">2. Auditoría exhaustiva</h3>
+<p>Todas las lecturas/escritas deben ser logged. Vault proporciona</p> </div> <div class="prose-footer" data-astro-cid-4sn4zg3r> <div class="post-divider" data-astro-cid-4sn4zg3r></div> <a href="/blog" class="back-link" data-astro-cid-4sn4zg3r>← Volver al blog</a> </div> </article>  </main> <!-- FOOTER --> <footer data-astro-cid-37fxchfa> <div class="container footer-inner" data-astro-cid-37fxchfa> <span class="footer-copy" data-astro-cid-37fxchfa>© 2026 Imanol Lubiano. Hecho con criterio.</span> <div class="footer-links" data-astro-cid-37fxchfa> <a href="https://www.linkedin.com/in/imanol-lubiano-428039279/" target="_blank" rel="noopener noreferrer" data-astro-cid-37fxchfa>LinkedIn</a> <a href="/#inicio" data-astro-cid-37fxchfa>Volver arriba ↑</a> </div> </div> </footer>  <script type="module">const d=document.getElementById("scroll-progress");let i=document.body.scrollHeight-window.innerHeight;window.addEventListener("resize",()=>{i=document.body.scrollHeight-window.innerHeight},{passive:!0});window.addEventListener("scroll",()=>{d.style.width=Math.min(window.scrollY/i*100,100)+"%"},{passive:!0});const a=document.getElementById("theme-toggle"),s=document.documentElement;a.addEventListener("click",()=>{s.classList.toggle("light"),localStorage.setItem("theme",s.classList.contains("light")?"light":"dark")});const g=document.querySelectorAll("section[id]"),u=document.querySelectorAll(".nav-links a"),m=new IntersectionObserver(e=>{e.forEach(t=>{t.isIntersecting&&u.forEach(n=>{n.classList.toggle("nav-active",n.getAttribute("href")===`/#${t.target.id}`)})})},{rootMargin:"-40% 0px -55% 0px"});g.forEach(e=>m.observe(e));const o=document.getElementById("nav-menu-btn"),r=document.getElementById("mobile-menu");function l(e){r.setAttribute("aria-hidden",String(!e)),o.setAttribute("aria-expanded",String(e)),o.classList.toggle("open",e),document.body.style.overflow=e?"hidden":""}o.addEventListener("click",()=>{l(r.getAttribute("aria-hidden")==="true")});document.querySelectorAll(".mobile-nav a").forEach(e=>{e.addEventListener("click",()=>l(!1))});const h=document.querySelectorAll(".reveal"),c=new IntersectionObserver(e=>{e.forEach((t,n)=>{t.isIntersecting&&(setTimeout(()=>t.target.classList.add("visible"),n*80),c.unobserve(t.target))})},{threshold:.1});h.forEach(e=>c.observe(e));</script></body></html>
