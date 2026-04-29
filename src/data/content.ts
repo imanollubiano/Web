@@ -7,8 +7,9 @@ export const experience = [
     location: 'Pesquera de Duero, Castilla y León',
     type: 'Jornada completa · Híbrido',
     current: true,
-    description: '',
-    tags: [],
+    description:
+      'Gestión IT en entorno productivo: endpoints Windows, infraestructura de red, soporte a usuarios y coordinación con proveedores externos.',
+    tags: ['Windows', 'Soporte técnico', 'Redes'],
   },
   {
     company: 'PackBenefit',
@@ -18,7 +19,7 @@ export const experience = [
     type: 'Jornada completa · Híbrido',
     current: false,
     description:
-      'Responsable de la estrategia, operación y evolución de la infraestructura tecnológica corporativa en un entorno multi-sede. Lideré la reestructuración de Active Directory (OUs, GPOs, consolidación de dominios), el diseño de red segmentada /22 con VLANs y WiFi empresarial RADIUS/NPS, y la administración de entornos híbridos Microsoft 365 (Entra ID, Intune, Purview DLP). Gestioné virtualización con Proxmox en clúster y desarrollé un portal B2B on-prem con Next.js, NestJS y PostgreSQL integrado con Navision.',
+      'Dirección técnica de infraestructura multi-sede: restructuré AD/GPOs, diseñé red segmentada con VLANs y WiFi empresarial RADIUS/NPS, y administré Microsoft 365 híbrido (Entra ID, Intune, Purview). Gestioné clúster Proxmox y desarrollé portal B2B con Next.js, NestJS y PostgreSQL integrado con Navision.',
     tags: ['Windows Server', 'Active Directory', 'Proxmox', 'Entra ID', 'Intune', 'Purview', 'NPS', 'RADIUS', 'Docker', 'PostgreSQL', 'Next.js', 'NestJS', 'Navision'],
   },
   {
@@ -29,7 +30,7 @@ export const experience = [
     type: 'Jornada completa · Presencial',
     current: false,
     description:
-      'Soporte técnico especializado en infraestructuras IT y comunicaciones para clientes empresariales. Instalación y mantenimiento de redes LAN/WAN, resolución avanzada de incidencias en hardware, software y conectividad, despliegue de sistemas operativos y servidores en entornos cliente. Intervenciones técnicas in situ y en remoto garantizando continuidad operativa.',
+      'Soporte técnico de campo para clientes empresariales: redes LAN/WAN, resolución de incidencias de hardware y software, despliegue de sistemas y servidores. Intervenciones presenciales y remotas.',
     tags: ['Redes LAN/WAN', 'Windows', 'Soporte remoto', 'Instalación hardware'],
   },
   {
@@ -40,7 +41,7 @@ export const experience = [
     type: 'Contrato temporal · Presencial',
     current: false,
     description:
-      'Soporte IT en el proyecto corporativo IRIUM: asistencia técnica presencial y remota a usuarios de la plataforma financiera, mantenimiento y configuración de equipos, y garantía de continuidad operativa en entorno corporativo.',
+      'Soporte IT presencial y remoto en proyecto IRIUM: asistencia a usuarios, mantenimiento de equipos y continuidad operativa en entorno financiero corporativo.',
     tags: ['Soporte técnico', 'ITIL'],
   },
 ];
