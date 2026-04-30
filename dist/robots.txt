@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /api/
 
-Sitemap: https://imanollubiano.dev/sitemap-index.xml
+Sitemap: https://imanol.info/sitemap-index.xml

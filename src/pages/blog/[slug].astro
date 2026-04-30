@@ -8,7 +8,6 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-
 if (!post) return Astro.redirect('/blog');
 
 const { Content } = await render(post);
@@ -16,9 +15,61 @@ const { Content } = await render(post);
 function formatDate(date: Date): string {
   return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 }
+
+// Reading time (~200 wpm)
+const wordCount = (post.body ?? '').split(/\s+/).filter(Boolean).length;
+const readingTime = Math.max(1, Math.round(wordCount / 200));
+
+const postURL = new URL(`/blog/${post.id}`, Astro.site ?? 'https://imanol.info').toString();
+const tags    = post.data.tags ?? [];
+
+const blogPostingSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.date.toISOString(),
+  dateModified: post.data.date.toISOString(),
+  url: postURL,
+  inLanguage: 'es-ES',
+  keywords: tags.join(', '),
+  author: {
+    '@type': 'Person',
+    name: 'Imanol Lubiano',
+    url: 'https://imanol.info',
+  },
+  publisher: {
+    '@type': 'Person',
+    name: 'Imanol Lubiano',
+    url: 'https://imanol.info',
+  },
+  ...(post.data.image ? { image: new URL(post.data.image, Astro.site ?? 'https://imanol.info').toString() } : {}),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://imanol.info' },
+    { '@type': 'ListItem', position: 2, name: 'Blog',   item: 'https://imanol.info/blog' },
+    { '@type': 'ListItem', position: 3, name: post.data.title, item: postURL },
+  ],
+};
 ---
 
-<BaseLayout title={`${post.data.title} — Imanol Lubiano`} description={post.data.description}>
+<BaseLayout
+  title={`${post.data.title} — Imanol Lubiano`}
+  description={post.data.description}
+  image={post.data.image}
+  type="article"
+  publishedTime={post.data.date.toISOString()}
+  tags={tags}
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(blogPostingSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  </Fragment>
+
   <article class="prose-wrap">
     <div class="prose-header">
       <a href="/blog" class="back-link">← Volver al blog</a>
@@ -27,8 +78,9 @@ function formatDate(date: Date): string {
         <time datetime={post.data.date.toISOString()} class="post-date">
           {formatDate(post.data.date)}
         </time>
+        <span class="post-reading-time">{readingTime} min de lectura</span>
         <div class="post-tags">
-          {post.data.tags.map((tag) => (
+          {tags.map((tag) => (
             <span class="project-tag">{tag}</span>
           ))}
         </div>
@@ -86,6 +138,14 @@ function formatDate(date: Date): string {
     color: var(--muted);
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .post-reading-time {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    opacity: 0.65;
   }
 
   .post-tags {

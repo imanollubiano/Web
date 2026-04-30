@@ -13,10 +13,14 @@
       "format": "date-time"
     },
     "tags": {
+      "default": [],
       "type": "array",
       "items": {
         "type": "string"
       }
+    },
+    "image": {
+      "type": "string"
     },
     "draft": {
       "default": false,
