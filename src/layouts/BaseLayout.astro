@@ -393,9 +393,15 @@ const personSchema = {
 <script>
   // ── SCROLL PROGRESS ──
   const progressBar = document.getElementById('scroll-progress')!;
-  let scrollMax = document.body.scrollHeight - window.innerHeight;
-  window.addEventListener('resize', () => { scrollMax = document.body.scrollHeight - window.innerHeight; }, { passive: true });
+  let scrollMax = 0;
+  const updateScrollMax = () => {
+    scrollMax = document.documentElement.scrollHeight - window.innerHeight;
+  };
+  // Diferir la lectura de scrollHeight al primer frame para evitar forced reflow
+  requestAnimationFrame(updateScrollMax);
+  window.addEventListener('resize', () => requestAnimationFrame(updateScrollMax), { passive: true });
   window.addEventListener('scroll', () => {
+    if (scrollMax <= 0) return;
     progressBar.style.width = Math.min(window.scrollY / scrollMax * 100, 100) + '%';
   }, { passive: true });
 

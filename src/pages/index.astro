@@ -238,8 +238,14 @@ const techLogos: Record<string, string | null> = {
       </div>
 
       <div class="hero-avatar-wrap">
-        <img src="/images/avatar.jpeg" alt="Imanol Lubiano" width="220" height="220" fetchpriority="high" class="hero-avatar hero-avatar-default" />
-        <img src="/images/avatar2.jpeg" alt="" aria-hidden="true" width="220" height="220" class="hero-avatar hero-avatar-hover" />
+        <picture style="display:contents">
+          <source srcset="/images/avatar.webp" type="image/webp" />
+          <img src="/images/avatar.jpeg" alt="Imanol Lubiano" width="220" height="220" fetchpriority="high" class="hero-avatar hero-avatar-default" />
+        </picture>
+        <picture style="display:contents">
+          <source srcset="/images/avatar2.webp" type="image/webp" />
+          <img src="/images/avatar2.jpeg" alt="" aria-hidden="true" width="220" height="220" class="hero-avatar hero-avatar-hover" />
+        </picture>
       </div>
 
     </div>
