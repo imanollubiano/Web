@@ -213,6 +213,7 @@ export const projects = [
     href: null,
     logo: '/images/nmj-isologo.svg',
     logoHover: '/images/nmj-isologo-color.svg',
+    logoColor: '#38BDF8',
   },
   {
     type: 'Infraestructura · Sistemas Distribuidos',
