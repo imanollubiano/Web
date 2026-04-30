@@ -12,9 +12,10 @@
   --bg3:     #21262d;
   --surface: #161b22;
   --border:  #30363d;
-  --accent:  #2563eb;
-  --accent2: #d4a017;
-  --muted:   #8b949e;
+  --accent:      #2563eb;
+  --accent-text: #60a5fa;  /* versión accesible de accent para texto sobre fondos oscuros (7.6:1) */
+  --accent2:     #d4a017;
+  --muted:       #8b949e;
   --text:    #c9d1d9;
   --heading: #f0f6fc;
 
@@ -29,14 +30,15 @@
 
 /* ── LIGHT THEME ── */
 html.light {
-  --bg:      #ffffff;
-  --bg2:     #f8fafc;
-  --bg3:     #f1f5f9;
-  --surface: #ffffff;
-  --border:  #e2e8f0;
-  --muted:   #64748b;
-  --text:    #334155;
-  --heading: #0f172a;
+  --bg:          #ffffff;
+  --bg2:         #f8fafc;
+  --bg3:         #f1f5f9;
+  --surface:     #ffffff;
+  --border:      #e2e8f0;
+  --accent-text: var(--accent);  /* en fondo blanco, accent original ya pasa (5.1:1) */
+  --muted:       #475569;        /* slate-600: 7:1 en blanco (era #64748b = 4.4:1, FAIL) */
+  --text:        #334155;
+  --heading:     #0f172a;
 }
 
 /* ── SELECTION ── */
@@ -120,7 +122,7 @@ img, svg { display: block; }
 .section-label {
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-bottom: 0.75rem;
@@ -134,7 +136,7 @@ img, svg { display: block; }
   flex: 1;
   max-width: 60px;
   height: 1px;
-  background: var(--accent);
+  background: var(--accent-text);
   opacity: 0.4;
 }
 

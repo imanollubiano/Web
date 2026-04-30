@@ -134,7 +134,7 @@ const personSchema = {
   </nav>
 
   <!-- Mobile overlay -->
-  <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+  <div class="mobile-menu" id="mobile-menu" aria-hidden="true" inert>
     <nav class="mobile-nav" role="navigation">
       <a href="/#sobre">Sobre mí</a>
       <a href="/#experiencia">Experiencia</a>
@@ -204,7 +204,7 @@ const personSchema = {
   .nav-logo {
     font-family: var(--font-mono);
     font-size: 0.9rem;
-    color: var(--accent);
+    color: var(--accent-text);
     letter-spacing: 0.05em;
     text-decoration: none;
     flex-shrink: 0;
@@ -238,16 +238,16 @@ const personSchema = {
     position: absolute;
     bottom: -2px; left: 0;
     width: 100%; height: 1px;
-    background: var(--accent);
+    background: var(--accent-text);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.2s ease;
   }
 
-  .nav-links a:hover        { color: var(--accent); }
+  .nav-links a:hover        { color: var(--accent-text); }
   .nav-links a:hover::after { transform: scaleX(1); }
-  .nav-links a.nav-active   { color: var(--accent); }
-  .nav-links a.nav-active::after { transform: scaleX(1); }
+  .nav-links a.nav-active   { color: var(--accent-text); }
+  .nav-links a.nav-active::after { transform: scaleX(1); background: var(--accent-text); }
 
   /* ── NAV ACTIONS ── */
   .nav-actions {
@@ -432,6 +432,7 @@ const personSchema = {
 
   function toggleMenu(open: boolean) {
     mobileMenu.setAttribute('aria-hidden', String(!open));
+    mobileMenu.toggleAttribute('inert', !open);
     menuBtn.setAttribute('aria-expanded', String(open));
     menuBtn.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
