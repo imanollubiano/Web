@@ -207,10 +207,10 @@ export const projects = [
     type: 'Side project · Bot',
     title: 'NoMeJuzgues',
     description:
-      'Bot con memoria de usuario, lógica de respuesta propia y almacenamiento en PostgreSQL. Arquitectura completa con NestJS, caché Redis y almacenamiento tipo S3 con MinIO.',
+      'No Me Juzgues — Apoyo emocional sin juicios, siempre disponible\nBot conversacional que ofrece acompañamiento emocional accesible y privado, basado en técnicas psicológicas contrastadas. Un espacio seguro para hablar sin miedo a ser juzgado, las 24 horas del día.',
     tags: ['NestJS', 'PostgreSQL', 'Redis', 'MinIO', 'Docker'],
     wip: true,
-    href: null,
+    href: 'https://nomejuzgues.com',
     logo: '/images/nmj-isologo.svg',
     logoHover: '/images/nmj-isologo-color.svg',
     logoColor: '#38BDF8',

@@ -465,7 +465,7 @@ const techLogos: Record<string, string | null> = {
               ))}
             </div>
             {p.href && (
-              <a href={p.href} class="project-link">Ver más →</a>
+              <a href={p.href} class="project-link" target={p.href.startsWith('http') ? '_blank' : undefined} rel={p.href.startsWith('http') ? 'noopener noreferrer' : undefined}>Ver más →</a>
             )}
           </article>
         ))}
