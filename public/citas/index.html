@@ -1,0 +1,460 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¿Quieres quedar conmigo?</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #ff6b9d 0%, #ff8e9e 40%, #ffb6c1 100%);
+    color: #fff;
+    text-align: center;
+    min-height: 100vh;
+    position: relative;
+    user-select: none;
+    overflow-x: hidden;
+  }
+
+  /* Corazones de fondo */
+  .heart-bg {
+    position: fixed;
+    font-size: 2rem;
+    opacity: 0.35;
+    animation: floatUp linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes floatUp {
+    from { transform: translateY(0) rotate(0deg); opacity: 0.4; }
+    to   { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* ===== Sistema de escenas ===== */
+  .scene {
+    display: none;
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+  }
+  .scene.active {
+    display: flex;
+    animation: pop 0.5s ease-out;
+  }
+  @keyframes pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 6vw, 4rem);
+    margin-bottom: 2.5rem;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    line-height: 1.2;
+  }
+  h2 {
+    font-size: clamp(1.6rem, 5vw, 3rem);
+    margin-bottom: 1rem;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+    max-width: 520px;
+  }
+
+  /* ===== Botones ===== */
+  .buttons {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: inherit;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+  }
+  #yes { background: #fff; color: #ff4d79; z-index: 3; }
+  #yes:hover { transform: scale(1.12); box-shadow: 0 12px 35px rgba(0,0,0,0.3); }
+
+  #no {
+    background: #c0392b; color: #fff; z-index: 3;
+    transition: top 0.12s ease, left 0.12s ease, transform 0.12s ease;
+  }
+
+  .btn-next {
+    background: #fff; color: #ff4d79; margin-top: 2rem;
+  }
+  .btn-next:hover:not(:disabled) { transform: scale(1.08); }
+  .btn-next:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .btn-back {
+    background: transparent;
+    color: #fff;
+    border: 2px solid rgba(255,255,255,0.6);
+    font-size: 1rem;
+    padding: 0.5rem 1.5rem;
+    margin-top: 1.2rem;
+    box-shadow: none;
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.15); }
+
+  /* ===== Inputs día/hora ===== */
+  .field {
+    margin: 0.8rem 0;
+    width: 100%;
+    max-width: 340px;
+  }
+  .field label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+    text-align: left;
+    font-weight: 600;
+  }
+  input[type="date"], input[type="time"] {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1.2rem;
+    padding: 0.8rem 1rem;
+    border: none;
+    border-radius: 15px;
+    color: #d6336c;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+
+  /* ===== Chips de energía (cómico) ===== */
+  .energy-box {
+    background: rgba(255,255,255,0.15);
+    border: 2px dashed rgba(255,255,255,0.6);
+    border-radius: 20px;
+    padding: 1.2rem;
+    margin: 1.5rem 0 0.5rem;
+    max-width: 420px;
+  }
+  .energy-box p { font-size: 1rem; margin-bottom: 0.9rem; font-weight: 600; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+  .chip {
+    background: rgba(255,255,255,0.9);
+    color: #d6336c;
+    border: 3px solid transparent;
+    border-radius: 30px;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s, border-color 0.12s;
+  }
+  .chip:hover { transform: scale(1.06); }
+  .chip.selected {
+    border-color: #7b2d40;
+    background: #fff;
+    transform: scale(1.06);
+  }
+
+  /* ===== Tarjetas de actividad ===== */
+  .activities {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    max-width: 640px;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  .activity {
+    background: rgba(255,255,255,0.92);
+    color: #d6336c;
+    border: 4px solid transparent;
+    border-radius: 20px;
+    padding: 1.4rem 1rem;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .activity:hover { transform: translateY(-5px) scale(1.03); }
+  .activity.selected { border-color: #7b2d40; transform: translateY(-5px) scale(1.05); }
+  .activity .emoji { font-size: 2.6rem; display: block; margin-bottom: 0.5rem; }
+  .activity .name { font-weight: 700; font-size: 1.05rem; }
+
+  /* ===== Confirmación ===== */
+  .summary {
+    background: rgba(255,255,255,0.95);
+    color: #d6336c;
+    border-radius: 25px;
+    padding: 1.8rem 2rem;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+  .summary .row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed rgba(214,51,108,0.3);
+    font-size: 1.15rem;
+  }
+  .summary .row:last-child { border-bottom: none; }
+  .summary .row .ico { font-size: 1.6rem; }
+  .summary .row .val { font-weight: 700; }
+
+  .btn-whatsapp {
+    background: #25D366;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    font-size: 1.4rem;
+    font-weight: 700;
+    padding: 1rem 2.4rem;
+    border-radius: 50px;
+    box-shadow: 0 8px 25px rgba(37,211,102,0.5);
+    transition: transform 0.15s;
+  }
+  .btn-whatsapp:hover { transform: scale(1.08); }
+
+  .big-heart { font-size: 5rem; animation: beat 0.8s ease-in-out infinite; margin-bottom: 0.5rem; }
+  @keyframes beat { 0%,100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+</style>
+</head>
+<body>
+
+<!-- ===== ESCENA 0: La propuesta ===== -->
+<section class="scene active" id="scene-propuesta">
+  <h1>¿Quieres quedar conmigo? 💕</h1>
+  <div class="buttons">
+    <button id="yes">Sí 😍</button>
+    <button id="no">No</button>
+  </div>
+</section>
+
+<!-- ===== ESCENA 1: Día y hora ===== -->
+<section class="scene" id="scene-dia">
+  <div class="big-heart">❤️</div>
+  <h2>¡Sabía que dirías que sí! 🥳</h2>
+  <p class="subtitle">Vale crack, ahora lo importante: <b>¿qué día tienes hueco en tu apretadísima agenda?</b></p>
+
+  <div class="field">
+    <label for="fecha">📅 Día de la cita</label>
+    <input type="date" id="fecha">
+  </div>
+  <div class="field">
+    <label for="hora">⏰ Hora</label>
+    <input type="time" id="hora">
+  </div>
+
+  <div class="energy-box">
+    <p>⚠️ Requisito obligatorio: preséntate <b>solo con energías de personaje principal</b> ✨</p>
+    <div class="chips" id="energyChips">
+      <div class="chip" data-energy="main">Main character total 💅</div>
+      <div class="chip" data-energy="peli">Protagonista de peli 🎬</div>
+      <div class="chip" data-energy="villano">Villano sexy 😏</div>
+      <div class="chip" data-energy="iconic">Modo iconic 🌟</div>
+    </div>
+  </div>
+
+  <button class="btn-next" id="next-dia" disabled>Siguiente ➜</button>
+</section>
+
+<!-- ===== ESCENA 2: El plan ===== -->
+<section class="scene" id="scene-plan">
+  <h2>¿Cuál es el plan? 🤔</h2>
+  <p class="subtitle">Elige la actividad. Aviso: cualquier opción incluye que yo esté encantador/a.</p>
+
+  <div class="activities" id="activities">
+    <div class="activity" data-plan="sushi"><span class="emoji">🍣</span><span class="name">Sushi</span></div>
+    <div class="activity" data-plan="cine"><span class="emoji">🎬</span><span class="name">Cine y palomitas</span></div>
+    <div class="activity" data-plan="cena"><span class="emoji">🍝</span><span class="name">Cena romántica</span></div>
+    <div class="activity" data-plan="cafe"><span class="emoji">☕</span><span class="name">Café tranqui</span></div>
+    <div class="activity" data-plan="cesped"><span class="emoji">🌱</span><span class="name">Tocar césped</span></div>
+    <div class="activity" data-plan="sorpresa"><span class="emoji">🎁</span><span class="name">Sorpréndeme</span></div>
+  </div>
+
+  <button class="btn-next" id="next-plan" disabled>Siguiente ➜</button>
+  <button class="btn-back" data-goto="scene-dia">← Volver</button>
+</section>
+
+<!-- ===== ESCENA 3: Confirmación + WhatsApp ===== -->
+<section class="scene" id="scene-confirm">
+  <div class="big-heart">💌</div>
+  <h2>¡Todo listo! Confírmalo 👇</h2>
+  <p class="subtitle">Repasa que esté todo bien y mándamelo por WhatsApp para hacerlo oficial.</p>
+
+  <div class="summary">
+    <div class="row"><span class="ico">📅</span><div>Día: <span class="val" id="s-fecha">—</span></div></div>
+    <div class="row"><span class="ico">⏰</span><div>Hora: <span class="val" id="s-hora">—</span></div></div>
+    <div class="row"><span class="ico">✨</span><div>Energía: <span class="val" id="s-energy">—</span></div></div>
+    <div class="row"><span class="ico">🎉</span><div>Plan: <span class="val" id="s-plan">—</span></div></div>
+  </div>
+
+  <a class="btn-whatsapp" id="whatsappBtn" target="_blank" rel="noopener">
+    <span>📲</span> Confirmar por WhatsApp
+  </a>
+  <button class="btn-back" data-goto="scene-plan">← Volver</button>
+</section>
+
+<script>
+  /* ================================================================
+     ⚙️  CONFIGURACIÓN — CAMBIA ESTO
+     Pon aquí TU número de WhatsApp con prefijo del país, SIN + ni espacios.
+     Ejemplo España: 34612345678
+  ================================================================= */
+  const MI_WHATSAPP = "34671101587";
+
+  /* ===== Estado ===== */
+  const datos = { fecha: '', hora: '', energia: '', plan: '' };
+
+  /* Emojis y textos escritos como Unicode (ASCII puro) para que NUNCA se rompan */
+  const ENERGIAS = {
+    main:    "Main character total \u{1F485}",
+    peli:    "Nivel protagonista de peli \u{1F3AC}",
+    villano: "Energía de villano sexy \u{1F60F}",
+    iconic:  "Modo iconic \u{1F31F}"
+  };
+  const PLANES = {
+    sushi:    "Sushi \u{1F363}",
+    cine:     "Cine y palomitas \u{1F3AC}",
+    cena:     "Cena romántica \u{1F35D}",
+    cafe:     "Café tranqui ☕",
+    cesped:   "Tocar césped \u{1F331}",
+    sorpresa: "Sorpréndeme \u{1F381}"
+  };
+
+  /* ===== Navegación entre escenas ===== */
+  function irA(id) {
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('[data-goto]').forEach(b =>
+    b.addEventListener('click', () => irA(b.dataset.goto)));
+
+  /* ===== ESCENA 0: botón "No" escurridizo ===== */
+  const noBtn = document.getElementById('no');
+  const yesBtn = document.getElementById('yes');
+  const burlas = ['No','jaja no','¿segur@?','nope','ni lo intentes','imposible',
+    'pilla si puedes','demasiado lento 🐢','nunca 😏','error 404','sigue soñando'];
+  let burlaIndex = 0;
+  function moverNo() {
+    const m = 20, w = noBtn.offsetWidth, h = noBtn.offsetHeight;
+    const x = Math.max(m, Math.random() * (window.innerWidth - w - m));
+    const y = Math.max(m, Math.random() * (window.innerHeight - h - m));
+    noBtn.style.position = 'fixed';
+    noBtn.style.left = x + 'px';
+    noBtn.style.top = y + 'px';
+    burlaIndex = (burlaIndex + 1) % burlas.length;
+    noBtn.textContent = burlas[burlaIndex];
+    noBtn.style.transform = 'rotate(' + (Math.random()*40 - 20) + 'deg)';
+  }
+  noBtn.addEventListener('mouseenter', moverNo);
+  noBtn.addEventListener('mousemove', moverNo);
+  noBtn.addEventListener('click', e => { e.preventDefault(); moverNo(); });
+  noBtn.addEventListener('touchstart', e => { e.preventDefault(); moverNo(); }, { passive:false });
+  document.addEventListener('mousemove', e => {
+    if (!document.getElementById('scene-propuesta').classList.contains('active')) return;
+    const r = noBtn.getBoundingClientRect();
+    const d = Math.hypot(e.clientX - (r.left+r.width/2), e.clientY - (r.top+r.height/2));
+    if (d < 120) moverNo();
+  });
+
+  yesBtn.addEventListener('click', () => { lanzarCorazones(true); irA('scene-dia'); });
+
+  /* ===== ESCENA 1: día, hora y energía ===== */
+  const fechaInput = document.getElementById('fecha');
+  const horaInput = document.getElementById('hora');
+  const nextDia = document.getElementById('next-dia');
+
+  // No permitir fechas pasadas
+  fechaInput.min = new Date().toISOString().split('T')[0];
+
+  function validarDia() {
+    nextDia.disabled = !(datos.fecha && datos.hora && datos.energia);
+  }
+  fechaInput.addEventListener('change', () => { datos.fecha = fechaInput.value; validarDia(); });
+  horaInput.addEventListener('change', () => { datos.hora = horaInput.value; validarDia(); });
+
+  document.querySelectorAll('#energyChips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#energyChips .chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      datos.energia = ENERGIAS[chip.dataset.energy];
+      validarDia();
+    });
+  });
+  nextDia.addEventListener('click', () => irA('scene-plan'));
+
+  /* ===== ESCENA 2: el plan ===== */
+  const nextPlan = document.getElementById('next-plan');
+  document.querySelectorAll('#activities .activity').forEach(act => {
+    act.addEventListener('click', () => {
+      document.querySelectorAll('#activities .activity').forEach(a => a.classList.remove('selected'));
+      act.classList.add('selected');
+      datos.plan = PLANES[act.dataset.plan];
+      nextPlan.disabled = false;
+    });
+  });
+  nextPlan.addEventListener('click', () => { rellenarResumen(); irA('scene-confirm'); });
+
+  /* ===== ESCENA 3: confirmación ===== */
+  function formatearFecha(iso) {
+    if (!iso) return '—';
+    const [a, m, d] = iso.split('-');
+    return `${d}/${m}/${a}`;
+  }
+  function rellenarResumen() {
+    document.getElementById('s-fecha').textContent = formatearFecha(datos.fecha);
+    document.getElementById('s-hora').textContent = datos.hora || '—';
+    document.getElementById('s-energy').textContent = datos.energia || '—';
+    document.getElementById('s-plan').textContent = datos.plan || '—';
+
+    const limpiar = (t) => t.replace(/[^\p{L}\p{N}\p{P}\p{Zs}]/gu, '').replace(/\s+/g, ' ').trim();
+    const msg =
+      `¡Hola! Acepto la cita\n\n` +
+      `Día: ${formatearFecha(datos.fecha)}\n` +
+      `Hora: ${datos.hora}\n` +
+      `Energía: ${limpiar(datos.energia)}\n` +
+      `Plan: ${limpiar(datos.plan)}\n\n` +
+      `Nos vemos, no llegues tarde`;
+
+    document.getElementById('whatsappBtn').href =
+      `https://wa.me/${MI_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+  }
+
+  /* ===== Corazones de fondo ===== */
+  function lanzarCorazones(explosion) {
+    const n = explosion ? 25 : 1;
+    for (let i = 0; i < n; i++) {
+      const h = document.createElement('div');
+      h.className = 'heart-bg';
+      h.textContent = ['💖','💕','💗','❤️','💘'][Math.floor(Math.random()*5)];
+      h.style.left = Math.random()*100 + 'vw';
+      h.style.fontSize = (1 + Math.random()*2.5) + 'rem';
+      h.style.animationDuration = (4 + Math.random()*5) + 's';
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 9000);
+    }
+  }
+  setInterval(() => lanzarCorazones(false), 600);
+</script>
+</body>
+</html>
